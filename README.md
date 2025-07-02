@@ -1,3 +1,16 @@
 # CodinGame Pro Layout
+[Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
 
-Chrome Link: https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa
+Reclaim your precious screen real estate in CodinGame IDE:
+* Hide the code editor
+* Move the Console Output to the right
+* Add "Upload Code" button
+* Add "Pro Layout" toggle button to enable/disable the modified layout
+
+![screenshot](images/screenshot.png)
+
+---
+
+Best used with `cg-local`:
+* https://github.com/jmerle/cg-local-ext
+* https://github.com/jmerle/cg-local-app
