@@ -7,6 +7,8 @@ Reclaim your precious screen real estate in CodinGame IDE:
 * Add "Upload Code" button
 * Add "Pro Layout" toggle button to enable/disable the modified layout
 
+---
+
 ![screenshot](images/screenshot.png)
 
 ---
