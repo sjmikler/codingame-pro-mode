@@ -3,7 +3,7 @@
 
 Reclaim your precious screen real estate in CodinGame IDE:
 * Hide the code editor
-* Move the Console Output to the right
+* Move the 'Console output' to the right
 * Add "Upload Code" button
 * Add "Pro Layout" toggle button to enable/disable the modified layout
 
