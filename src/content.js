@@ -136,7 +136,6 @@ function initialize() {
         return;
     }
 
-    console.log("Initializing UI..."); // For debugging
     createProLayoutToggleButton();
     createUploadCodeButton();
     if (isLayoutActive) {
