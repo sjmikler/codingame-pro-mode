@@ -131,6 +131,12 @@ function createProLayoutToggleButton() {
 
 // --- INITIALIZATION ---
 function initialize() {
+    // If the button we are about to create already exists, do nothing.
+    if (document.querySelector('.custom-layout-entry')) {
+        return;
+    }
+
+    console.log("Initializing UI..."); // For debugging
     createProLayoutToggleButton();
     createUploadCodeButton();
     if (isLayoutActive) {
@@ -138,12 +144,25 @@ function initialize() {
     }
 }
 
-function waitForElement(selector, callback) {
-    if (document.querySelector(selector)) { callback(); return; }
-    const observer = new MutationObserver(() => {
-        if (document.querySelector(selector)) { observer.disconnect(); callback(); }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-}
+// This function will be called by the observer on every DOM change.
+const handleDOMChanges = () => {
+    // Check if the menu exists on the page right now.
+    const menuExists = document.querySelector('.menu-entries');
 
-waitForElement('.menu-entries', initialize);
+    if (menuExists) {
+        // The menu is present, so try to initialize our UI.
+        // The guard clause inside initialize() will prevent it from running if it's already there.
+        initialize();
+    }
+    // No 'else' is needed. If the menu isn't there, we just do nothing and wait.
+};
+
+// Create an observer that calls our handler function.
+const observer = new MutationObserver(handleDOMChanges);
+
+// Start observing the entire document for changes.
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
+});
+
