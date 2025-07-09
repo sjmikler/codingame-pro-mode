@@ -47,13 +47,14 @@ body.pro-layout-active .cg-ide .statement-bloc {
 
 body.pro-layout-active .cg-ide .testcases-actions-container {
     height: 252px !important;
-    top: 0 !important;
-    bottom: auto !important;
+    top: auto !important;
+    bottom: 0 !important;
 }
 
 body.pro-layout-active .cg-ide .console-bloc {
     height: auto !important;
-    top: 252px !important;
-    bottom: 0 !important;
+    top: 0 !important;
+    bottom: 252px !important;
     right: 0 !important;
+    margin-top: 0;
 }
