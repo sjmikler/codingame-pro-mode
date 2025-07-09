@@ -11,11 +11,11 @@ let layoutObserver = null;
 function activateProLayout() {
     document.body.classList.add('pro-layout-active');
 
+    const statementBlock = document.querySelector('.statement-bloc');
     const consoleBlock = document.querySelector('.console-bloc');
-    const rightPanel = document.querySelector('.testcases-actions-container');
-    if (!consoleBlock || !rightPanel) return;
+    const actionsBlock = document.querySelector('.testcases-actions-container');
+    if (!consoleBlock || !actionsBlock) return;
 
-    // The rest of the activation logic remains the same
     const unminimizeButton = document.querySelector('.console-bloc .unminimize-button');
     if (unminimizeButton) unminimizeButton.click();
     const consoleHeaderButtons = document.querySelector('.console-bloc .header-buttons');
@@ -23,14 +23,19 @@ function activateProLayout() {
 
     const syncPanelPosition = () => {
         if (!isLayoutActive) return;
-        const targetLeft = rightPanel.style.left;
+        const targetLeft = actionsBlock.style.left;
         if (targetLeft && consoleBlock.style.left !== targetLeft) {
             consoleBlock.style.left = targetLeft;
+        }
+
+        const targetRight = statementBlock.style.right;
+        if (targetRight && actionsBlock.style.right !== targetRight) {
+            actionsBlock.style.right = targetRight;
         }
     };
 
     layoutObserver = new MutationObserver(syncPanelPosition);
-    layoutObserver.observe(rightPanel, {attributes: true, attributeFilter: ['style']});
+    layoutObserver.observe(actionsBlock, {attributes: true, attributeFilter: ['style']});
     syncPanelPosition();
 }
 
@@ -49,6 +54,8 @@ function deactivateProLayout() {
     if (consoleBlock) consoleBlock.style.left = '';
     const consoleHeaderButtons = document.querySelector('.console-bloc .header-buttons');
     if (consoleHeaderButtons) consoleHeaderButtons.style.display = '';
+    const actionsBlock = document.querySelector('.testcases-actions-container');
+    if (actionsBlock) actionsBlock.style.right = '';
 }
 
 function updateEditorCode(code) {
