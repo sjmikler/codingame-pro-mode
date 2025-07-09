@@ -30,7 +30,7 @@ function activateProLayout() {
     };
 
     layoutObserver = new MutationObserver(syncPanelPosition);
-    layoutObserver.observe(rightPanel, { attributes: true, attributeFilter: ['style'] });
+    layoutObserver.observe(rightPanel, {attributes: true, attributeFilter: ['style']});
     syncPanelPosition();
 }
 
@@ -44,7 +44,7 @@ function deactivateProLayout() {
         layoutObserver.disconnect();
         layoutObserver = null;
     }
-    
+
     const consoleBlock = document.querySelector('.console-bloc');
     if (consoleBlock) consoleBlock.style.left = '';
     const consoleHeaderButtons = document.querySelector('.console-bloc .header-buttons');
@@ -52,8 +52,8 @@ function deactivateProLayout() {
 }
 
 function updateEditorCode(code) {
-    const eventData = { status: 'updateCode', code: code.replace(/\r\n|\r/g, '\n') };
-    const ev = new CustomEvent('ExternalEditorToIDE', { detail: eventData });
+    const eventData = {status: 'updateCode', code: code.replace(/\r\n|\r/g, '\n')};
+    const ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
     window.document.dispatchEvent(ev);
 }
 
@@ -97,6 +97,7 @@ function createUploadCodeButton() {
         menuContainer.appendChild(menuEntryDiv);
     }
 }
+
 function createProLayoutToggleButton() {
     const menuContainer = document.querySelector('.menu-entries');
     if (!menuContainer) return;
@@ -113,7 +114,11 @@ function createProLayoutToggleButton() {
     button.appendChild(iconElement.firstChild);
     button.appendChild(span);
     menuEntryDiv.appendChild(button);
-    function updateButtonAppearance() { button.classList.toggle('selected', isLayoutActive); }
+
+    function updateButtonAppearance() {
+        button.classList.toggle('selected', isLayoutActive);
+    }
+
     button.onclick = () => {
         isLayoutActive = !isLayoutActive;
         localStorage.setItem('isProLayoutActive', isLayoutActive);
@@ -161,7 +166,6 @@ const observer = new MutationObserver(handleDOMChanges);
 
 // Start observing the entire document for changes.
 observer.observe(document.body, {
-    childList: true,
-    subtree: true
+    childList: true, subtree: true
 });
 

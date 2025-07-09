@@ -26,6 +26,7 @@
 .menu-entry-inner .custom-layout-icon {
     fill: #9a9a9a; /* Default gray color */
 }
+
 .menu-entry-inner.selected .custom-layout-icon {
     fill: currentColor; /* White color when selected */
 }
@@ -37,16 +38,19 @@ body.pro-layout-active .cg-ide .code-bloc,
 body.pro-layout-active .statement-resize-handle {
     display: none !important;
 }
+
 body.pro-layout-active .cg-ide .statement-bloc {
     top: 0 !important;
     bottom: 0 !important;
     height: auto !important;
 }
+
 body.pro-layout-active .cg-ide .testcases-actions-container {
     height: 252px !important;
     top: 0 !important;
     bottom: auto !important;
 }
+
 body.pro-layout-active .cg-ide .console-bloc {
     height: auto !important;
     top: 252px !important;
