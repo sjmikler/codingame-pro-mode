@@ -9,7 +9,7 @@ Reclaim your precious screen real estate in CodinGame IDE:
 
 ---
 
-![screenshot](images/screenshot.png)
+![screenshot](images/screenshot2.png)
 
 ---
 
