@@ -1,36 +1,10 @@
 /* --- PERMANENT STYLES FOR BUTTONS --- */
-
-/* This is the container for our custom buttons */
-.menu-entry.custom-layout-entry .menu-entry-inner,
-.menu-entry.load-file-entry .menu-entry-inner {
-    /* We only set padding here and let the children handle their own layout */
-    padding: 8px 4px;
-    height: 58px; /* Give a consistent height */
-}
-
-/* NEW: Force the icon to be a block and center it */
-.menu-entry .custom-layout-icon {
+.pro-icon {
     display: block;
     margin: 0 auto 5px auto; /* Centers the icon horizontally */
     width: 22px;
     height: 22px;
 }
-
-/* NEW: Force the label to be a block and center its text */
-.menu-entry .entry-label {
-    display: block;
-    text-align: center;
-}
-
-/* Set the icon color for both states */
-.menu-entry-inner .custom-layout-icon {
-    fill: #9a9a9a; /* Default gray color */
-}
-
-.menu-entry-inner.selected .custom-layout-icon {
-    fill: currentColor; /* White color when selected */
-}
-
 
 /* --- TOGGLEABLE STYLES FOR THE "PRO LAYOUT" --- */
 /* These rules only apply when the body has our custom class */
