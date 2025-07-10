@@ -211,6 +211,10 @@ function stopSyncProcess() {
     updateSyncButtonUI(false);
 }
 
+function fileSystemAccessApiAvailable() {
+    return 'showOpenFilePicker' in self  // Check if the File System Access API is available in the current browser
+}
+
 function createSyncCodeButton() {
     const menuContainer = document.querySelector('.menu-entries');
     if (!menuContainer) return;
@@ -226,6 +230,11 @@ function createSyncCodeButton() {
 
     // This is the main toggle logic
     button.onclick = () => {
+        if (fileSystemAccessApiAvailable() === false) {
+            alert("File System Access API not available. To use this feature, enable:\n\nchrome://flags/#file-system-access-api");
+            return;
+        }
+
         if (isSyncing) {
             stopSyncProcess();
         } else {
@@ -265,6 +274,7 @@ function initialize() {
     // createUploadCodeButton();
     createSyncCodeButton();
     createProLayoutToggleButton();
+
     if (isLayoutActive) {
         activateProLayout();
     }
