@@ -154,10 +154,10 @@ function updateSyncButtonUI(isActive) {
     if (!button) return;
 
     button.classList.toggle('selected', isActive);
-    const label = button.querySelector('.entry-label');
-    if (label) {
-        label.textContent = isActive ? 'Sync Active' : 'Sync Code';
-    }
+    // const label = button.querySelector('.entry-label');
+    // if (label) {
+    //     label.textContent = isActive ? 'Sync Active' : 'Sync Code';
+    // }
 }
 
 // Observes the file for changes and updates the editor
