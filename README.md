@@ -12,7 +12,7 @@ Clicking the button has the following effects:
 
 * Hides the code editor
 * Moves the 'Console output' to the right
-* Moves 'Players' and 'Actions' to the left, underneath the game visualization
+* Moves 'Players' and 'Actions' to the left, under the game visualization
 
 This is a toggle button. Click it again to restore the default layout.
 
