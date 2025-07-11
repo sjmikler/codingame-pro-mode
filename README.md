@@ -21,7 +21,7 @@ This is a toggle button. Click it again to restore the default layout.
 
 ## Synchronization Functionality
 
-As a bonus, this extension offers synchronization functionality. No external apps are necessary. You can choose to use only a one-way sync or activate both for a two-way sync.
+This extension also offers synchronization functionality. No external apps are necessary. You can choose to use only a one-way sync or use both for a two-way sync.
 
 > This feature requires File System Access API. It is active in Goolge Chrome, but other Chromium browsers might require explicit activation.
 >
