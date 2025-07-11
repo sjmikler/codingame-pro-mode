@@ -17,7 +17,7 @@ Clicking the button has the following effects:
 This is a toggle button. Click it again to restore the default layout.
 
 ![screenshot](images/screenshot.png)
-*Screenshot shows how Pro Layout looks in practice.*
+*Screenshot showing how 'Pro Layout' looks in practice.*
 
 ## Synchronization Functionality
 
