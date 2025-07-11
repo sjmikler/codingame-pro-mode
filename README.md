@@ -29,8 +29,8 @@ As a bonus, this extension offers synchronization functionality. No external app
 
 ### Sync Local button
 
-After clicking the button, select a single file that will be continuously watched. Edit your code locally and the changes will be reflected online.
+After clicking the button, select a local file that will be continuously watched. Edit the code locally and the changes will be reflected online.
 
 ### Sync Online button
 
-After clicking the button, select a single file that will be continuously updated. Edit your code in the online editor and the changes will be reflected locally.
+After clicking the button, select a local file that will be continuously updated. Edit the code in the online editor and the changes will be reflected locally.
