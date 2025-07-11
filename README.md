@@ -33,4 +33,4 @@ After clicking the button, select a single file that will be continuously watche
 
 ### Sync Online button
 
-After clicking the button, select a single file that will be continuously updated. Edit your code in the online IDE and the changes will be reflected locally.
+After clicking the button, select a single file that will be continuously updated. Edit your code in the online editor and the changes will be reflected locally.
