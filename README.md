@@ -19,10 +19,18 @@ This is a toggle button. Click it again to restore the default layout.
 ![screenshot](images/screenshot.png)
 *Screenshot shows how Pro Layout looks in practice.*
 
-## Sync Code button
+## Synchronization Functionality
 
-After clicking the button, select a single file that will be continuously synchronized with your online editor. No external apps are necessary. With synchronization active, edit your code locally and the changes will be reflected online. **This is a one-way sync**. If you edit the code online, your local code won't be updated.
+As a bonus, this extension offers synchronization functionality. No external apps are necessary. You can choose to use only a one-way sync or activate both for a two-way sync.
 
 > This feature requires File System Access API. It is active in Goolge Chrome, but other Chromium browsers might require explicit activation.
 >
 > `chrome://flags/#file-system-access-api`
+
+### Sync Local button
+
+After clicking the button, select a single file that will be continuously watched. Edit your code locally and the changes will be reflected online.
+
+### Sync Online button
+
+After clicking the button, select a single file that will be continuously updated. Edit your code in the online IDE and the changes will be reflected locally.
