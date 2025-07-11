@@ -6,6 +6,13 @@
     height: 22px;
 }
 
+.code-timestamp {
+    display: inline-flex;
+    height: 100%;
+    align-items: center;
+    float: right;
+}
+
 /* --- TOGGLEABLE STYLES FOR THE "PRO LAYOUT" --- */
 /* These rules only apply when the body has our custom class */
 body.pro-layout-active .cg-ide .code-bloc,
