@@ -33,4 +33,4 @@ After clicking the button, select a local file that will be continuously watched
 
 ### Sync Online button
 
-After clicking the button, select a local file that will be continuously updated. Edit the code in the online editor and the changes will be reflected locally.
+After clicking the button, select a local file that will be continuously updated. Edit the code online and the changes will be reflected locally.
