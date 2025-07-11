@@ -249,10 +249,6 @@ function createSyncLocalButton() {
     const menuContainer = document.querySelector('.menu-entries');
     if (!menuContainer) return;
 
-    // const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="pro-icon" viewBox="0 0 16 16"><path d="M11 5.466V4H5a4 4 0 0 0-3.584 5.777.5.5 0 1 1-.832.546A5 5 0 0 1 5 3h6V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192Zm-6 5.068V12h6a4 4 0 0 0 3.585-5.777.5.5 0 1 1 .832-.546A5 5 0 0 1 11 13H5v1.534a.25.25 0 0 1-.41.192l-2.36-1.966a.25.25 0 0 1 0-.384l2.36-1.966a.25.25 0 0 1 .41.192Z"/></svg>`;
-    // const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="pro-icon" viewBox="0 0 16 16"><path d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z"/></svg>`;
-    const iconSvg = iconUpSvg;
-
     const menuEntryDiv = document.createElement('div');
     menuEntryDiv.className = 'menu-entry sync-local-entry';
 
@@ -274,7 +270,7 @@ function createSyncLocalButton() {
     };
 
     const iconElement = document.createElement('div');
-    iconElement.innerHTML = iconSvg;
+    iconElement.innerHTML = iconUpSvg;
 
     const span = document.createElement('span');
     span.className = 'entry-label';
@@ -440,9 +436,6 @@ function createSyncOnlineButton() {
     const menuContainer = document.querySelector('.menu-entries');
     if (!menuContainer) return;
 
-    // const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="pro-icon" viewBox="0 0 16 16"><path d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854a.5.5 0 0 0-.708-.708L8.5 9.293V5.5a.5.5 0 0 0-1 0v3.793L6.354 8.146a.5.5 0 1 0 .708.708l2 2a.5.5 0 0 0 .708 0l2-2z"/></svg>`;
-    const iconSvg = iconDownSvg;
-
     const menuEntryDiv = document.createElement('div');
     menuEntryDiv.className = 'menu-entry sync-online-entry';
 
@@ -463,7 +456,7 @@ function createSyncOnlineButton() {
     };
 
     const iconElement = document.createElement('div');
-    iconElement.innerHTML = iconSvg;
+    iconElement.innerHTML = iconDownSvg;
 
     const span = document.createElement('span');
     span.className = 'entry-label';
