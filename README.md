@@ -4,7 +4,7 @@
 
 Reclaim your precious screen real estate in CodinGame IDE.
 
-Automatically synchronize your local code to the online editor.
+Automatically synchronize your local code with the online editor.
 
 ## Pro Layout button
 
