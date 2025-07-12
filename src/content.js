@@ -2,13 +2,19 @@
 
 // --- SCRIPT LOGIC ---
 let isProLayoutActive = localStorage.getItem('isProLayoutActive') !== 'false';
-let layoutObserver = null;
+let proLayoutObserver = null;
+let currentCode = '';
 
+let syncLocalActive = false;
+let syncLocalInterval = null;
+let syncLocalLastModified = 0;
+
+let syncOnlineActive = false;
+let syncOnlineFileHandle = null;
 
 function fileSystemAccessApiAvailable() {
     return 'showOpenFilePicker' in self  // Check if the File System Access API is available in the current browser
 }
-
 
 // --- PRO LAYOUT FUNCTIONALITY --
 function activateProLayout() {
@@ -37,19 +43,18 @@ function activateProLayout() {
         }
     };
 
-    layoutObserver = new MutationObserver(syncPanelPosition);
-    layoutObserver.observe(actionsBlock, { attributes: true, attributeFilter: ['style'] });
+    proLayoutObserver = new MutationObserver(syncPanelPosition);
+    proLayoutObserver.observe(actionsBlock, {attributes: true, attributeFilter: ['style']});
     syncPanelPosition();
 }
-
 
 
 function deactivateProLayout() {
     document.body.classList.remove('pro-layout-active');
 
-    if (layoutObserver) {
-        layoutObserver.disconnect();
-        layoutObserver = null;
+    if (proLayoutObserver) {
+        proLayoutObserver.disconnect();
+        proLayoutObserver = null;
     }
 
     const consoleBlock = document.querySelector('.console-bloc');
@@ -101,9 +106,9 @@ function createProLayoutToggleButton() {
 // --- PRO LAYOUT FUNCTIONALITY ---
 
 
-
-
 // --- UPLOAD CODE FUNCTIONALITY ---
+// --- CURRENTLY UNUSED
+
 function createUploadCodeButton() {
     const menuContainer = document.querySelector('.menu-entries');
     if (!menuContainer) return;
@@ -143,16 +148,26 @@ function createUploadCodeButton() {
         menuContainer.appendChild(menuEntryDiv);
     }
 }
+
 // --- UPLOAD CODE FUNCTIONALITY ---
 
 
+// A cloud with a DOWN arrow (from your new reference)
+const iconDownSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
+    <rect width="24" height="24" opacity="0"/>
+    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
+    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z"/>
+</svg>`;
 
-// --- SYNC LOCAL FUNCTIONALITY ---
-function updateEditorCode(code) {
-    const eventData = { status: 'updateCode', code: code.replace(/\r\n|\r/g, '\n') };
-    const ev = new CustomEvent('ExternalEditorToIDE', { detail: eventData });
-    window.document.dispatchEvent(ev);
+// A cloud with an UP arrow (arrow path is rotated 180 degrees)
+const iconUpSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
+    <rect width="24" height="24" opacity="0"/>
+    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
+    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z" transform="rotate(180, 12, 16.5)"/>
+</svg>`;
 
+
+function updateTimestampDisplay() {
     let codeTimestamp = document.querySelector(".code-timestamp");
     if (!codeTimestamp) {
         const codeManagement = document.querySelector(".ide-header");
@@ -167,10 +182,25 @@ function updateEditorCode(code) {
     codeTimestamp.textContent = 'Last synchronized: ' + start.toLocaleString();
 }
 
+function maybe_remove_timestamp() {
+    let codeTimestamp = document.querySelector(".code-timestamp");
+    if (codeTimestamp && !syncOnlineActive && !syncLocalActive) codeTimestamp.remove();
+}
 
-let syncLocalActive = false;
-let syncLocalInterval = null;
-let syncLocalLastModified = 0;
+
+// --- SYNC LOCAL FUNCTIONALITY ---
+function updateEditorCode(code) {
+    if (code && code !== currentCode) {
+        console.log("Updating editor code...");
+
+        currentCode = code;
+        const eventData = {status: 'updateCode', code: code.replace(/\r\n|\r/g, '\n')};
+        const ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
+        window.document.dispatchEvent(ev);
+        updateTimestampDisplay();
+    }
+}
+
 
 // Observes the file for changes and updates the editor
 async function observeFileForSyncLocal(handle) {
@@ -181,7 +211,7 @@ async function observeFileForSyncLocal(handle) {
 
     syncLocalInterval = setInterval(async () => {
         try {
-            if ((await handle.queryPermission({ mode: 'read' })) !== 'granted') {
+            if ((await handle.queryPermission({mode: 'read'})) !== 'granted') {
                 stopSyncLocalProcess(); // Stop if permission is revoked
                 return;
             }
@@ -206,7 +236,7 @@ async function startSyncLocalProcess() {
 
         const button = document.querySelector('.sync-local-entry .menu-entry-inner');
         if (button) button.classList.toggle('selected', true);
-        observeFileForSyncLocal(newHandle);
+        await observeFileForSyncLocal(newHandle);
     } catch (err) {
         if (err.name !== 'AbortError') console.error(err);
     }
@@ -225,24 +255,7 @@ function stopSyncLocalProcess() {
     const button = document.querySelector('.sync-local-entry .menu-entry-inner');
     if (button) button.classList.toggle('selected', false);
 
-    let codeTimestamp = document.querySelector(".code-timestamp");
-    if (codeTimestamp && !syncOnlineActive) codeTimestamp.remove();
 }
-
-
-// A cloud with a DOWN arrow (from your new reference)
-const iconDownSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" opacity="0"/>
-    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
-    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z"/>
-</svg>`;
-
-// A cloud with an UP arrow (arrow path is rotated 180 degrees)
-const iconUpSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" opacity="0"/>
-    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
-    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z" transform="rotate(180, 12, 16.5)"/>
-</svg>`;
 
 
 function createSyncLocalButton() {
@@ -255,18 +268,15 @@ function createSyncLocalButton() {
     const button = document.createElement('button');
     button.className = 'menu-entry-inner';
 
-    // This is the main toggle logic
     button.onclick = () => {
         if (fileSystemAccessApiAvailable() === false) {
             alert("File System Access API not available. To use this feature, enable:\n\nchrome://flags/#file-system-access-api");
             return;
         }
 
-        if (syncLocalActive) {
-            stopSyncLocalProcess();
-        } else {
-            startSyncLocalProcess();
-        }
+        if (syncLocalActive) stopSyncLocalProcess();
+        else startSyncLocalProcess();
+
     };
 
     const iconElement = document.createElement('div');
@@ -283,125 +293,32 @@ function createSyncLocalButton() {
     const uploadFileEntry = menuContainer.querySelector('.menu-entry.settings');
     if (uploadFileEntry) {
         uploadFileEntry.insertAdjacentElement('afterend', menuEntryDiv);
-    } else {
-        menuContainer.appendChild(menuEntryDiv);
-    }
+    } else menuContainer.appendChild(menuEntryDiv);
+
 }
+
 // --- SYNC LOCAL FUNCTIONALITY ---
 
 
 // --- SYNC ONLINE FUNCTIONALITY ---
-let syncOnlineActive = false;
-let syncOnlineFileHandle = null;
-let syncOnlinePollInterval = null;
-let lastKnownOnlineCode = '';
-
-/**
- * Gets the editor content by reading each line element and sorting them
- * by their vertical position to ensure perfect reconstruction.
- */
-function getEditorContent() {
-    const editorLinesContainer = document.querySelector('.view-lines');
-
-    if (isProLayoutActive || !editorLinesContainer) {
-        // console.warn("Could not find editor content container: '.view-lines'");
-        return null;
-    }
-
-    // Get all line elements from the container.
-    const lineNodes = Array.from(editorLinesContainer.children);
-
-    // The editor can reorder HTML elements for performance. To prevent scrambled code,
-    // we MUST sort the lines based on their explicit CSS 'top' property.
-    const sortedLineNodes = lineNodes.sort((a, b) => {
-        const topA = parseInt(a.style.top, 10);
-        const topB = parseInt(b.style.top, 10);
-        return topA - topB;
-    });
-
-    const linesOfCode = sortedLineNodes.map(lineNode => {
-        // Get the text content of the line.
-        const lineText = lineNode.textContent || '';
-
-        // Clean the line of invalid characters.
-        return lineText.replace(/\u00a0/g, ' ');
-    });
-
-    // Join the perfectly ordered lines with newlines.
-    return linesOfCode.join('\n');
-}
-
-
-/**
- * Writes the given code to the file handle selected by the user.
- * @param {string} code The code to write to the file.
- */
-async function writeCodeToLocalFile(code) {
-    if (!syncOnlineFileHandle) return;
-    try {
-        const writable = await syncOnlineFileHandle.createWritable();
-        await writable.write(code);
-        await writable.close();
-
-        // If the local-to-online sync is also active, update its timestamp
-        // to prevent it from immediately re-uploading this change.
-        if (syncLocalActive) {
-            const file = await syncOnlineFileHandle.getFile();
-            syncLocalLastModified = file.lastModified;
-        }
-
-        let codeTimestamp = document.querySelector(".code-timestamp");
-        if (!codeTimestamp) {
-            const codeManagement = document.querySelector(".ide-header");
-            if (codeManagement) {
-                codeTimestamp = document.createElement('div');
-                codeTimestamp.className = 'code-timestamp';
-                codeManagement.appendChild(codeTimestamp);
-            } else return;
-        }
-
-        const start = new Date(Date.now());
-        codeTimestamp.textContent = 'Last synchronized: ' + start.toLocaleString();
-
-    } catch (error) {
-        console.error("Failed to write to file, stopping sync.", error);
-        stopSyncOnlineProcess();
-    }
-}
-
-/**
- * Checks for changes and writes them to the file.
- */
-function pollForOnlineChanges() {
-    const currentCode = getEditorContent();
-    // Only proceed if the editor content was found and is different
-    if (currentCode !== null && currentCode !== lastKnownOnlineCode) {
-        console.log("Change detected in online editor, updating local file...");
-        lastKnownOnlineCode = currentCode;
-        writeCodeToLocalFile(currentCode);
-    }
-}
-
-// Starts the sync process
 async function startSyncOnlineProcess() {
     try {
         const [newHandle] = await window.showOpenFilePicker();
         syncOnlineFileHandle = newHandle;
 
-        // Get initial state of the editor
-        const initialCode = getEditorContent();
-        if (initialCode === null) {
-            alert("Could not find the editor content. Cannot start sync.");
-            return;
+        { // Enable synchronization
+            let eventData = {status: 'synchronized', value: true};
+            let ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
+            window.document.dispatchEvent(ev);
         }
 
-        // Immediately save the current code to the file and set the last known state
-        await writeCodeToLocalFile(initialCode);
-        lastKnownOnlineCode = initialCode;
+        { // Initial code download
+            let eventData = {status: 'getCode'};
+            let ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
+            window.document.dispatchEvent(ev);
+        }
 
-        // If successful, start polling for changes
         syncOnlineActive = true;
-        syncOnlinePollInterval = setInterval(pollForOnlineChanges, 2000);
 
         const button = document.querySelector('.sync-online-entry .menu-entry-inner');
         if (button) button.classList.toggle('selected', true);
@@ -416,21 +333,50 @@ async function startSyncOnlineProcess() {
 
 // Stops the sync process
 function stopSyncOnlineProcess() {
-    if (syncOnlinePollInterval) {
-        clearInterval(syncOnlinePollInterval);
-        syncOnlinePollInterval = null;
-    }
+    // Disable synchronization
+    let eventData = {status: 'synchronized', value: false};
+    let ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
+    window.document.dispatchEvent(ev);
+
     syncOnlineActive = false;
     syncOnlineFileHandle = null;
-    lastKnownOnlineCode = '';
 
     const button = document.querySelector('.sync-online-entry .menu-entry-inner');
     if (button) button.classList.toggle('selected', false);
-
-    let codeTimestamp = document.querySelector(".code-timestamp");
-    if (codeTimestamp && !syncLocalActive) codeTimestamp.remove();
+    maybe_remove_timestamp();
 }
 
+async function writeCodeToLocalFile(code) {
+    if (!syncOnlineFileHandle) return;
+    try {
+        const writable = await syncOnlineFileHandle.createWritable();
+        await writable.write(code);
+        await writable.close();
+
+        // If the local-to-online sync is also active, update its timestamp
+        // to prevent it from immediately re-uploading this change.
+        if (syncLocalActive) {
+            const file = await syncOnlineFileHandle.getFile();
+            syncLocalLastModified = file.lastModified;
+        }
+    } catch (error) {
+        console.error("Failed to write to file, stopping sync.", error);
+        stopSyncOnlineProcess();
+    }
+}
+
+function handleSyncOnlineEvents(event) {
+    if (!syncOnlineActive) return;
+    console.log("Received event from IDE:", event.detail);
+
+    if (event.detail.code && event.detail.code !== currentCode) {
+        currentCode = event.detail.code;
+        writeCodeToLocalFile(event.detail.code);
+        console.log("Code written to local file.");
+        updateTimestampDisplay();
+    }
+
+}
 
 function createSyncOnlineButton() {
     const menuContainer = document.querySelector('.menu-entries');
@@ -442,17 +388,16 @@ function createSyncOnlineButton() {
     const button = document.createElement('button');
     button.className = 'menu-entry-inner';
 
+    window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvents);
+
     button.onclick = () => {
         if (typeof window.showOpenFilePicker !== 'function') {
             alert("File System Access API not available.");
             return;
         }
+        if (syncOnlineActive) stopSyncOnlineProcess();
+        else startSyncOnlineProcess();
 
-        if (syncOnlineActive) {
-            stopSyncOnlineProcess();
-        } else {
-            startSyncOnlineProcess();
-        }
     };
 
     const iconElement = document.createElement('div');
@@ -473,8 +418,8 @@ function createSyncOnlineButton() {
         menuContainer.appendChild(menuEntryDiv);
     }
 }
-// --- SYNC ONLINE FUNCTIONALITY ---
 
+// --- SYNC ONLINE FUNCTIONALITY ---
 
 
 // --- INITIALIZATION ---
@@ -489,9 +434,7 @@ function initialize() {
     createSyncLocalButton();
     createProLayoutToggleButton();
 
-    if (isProLayoutActive) {
-        activateProLayout();
-    }
+    if (isProLayoutActive) activateProLayout();
 }
 
 // This function will be called by the observer on every DOM change.
@@ -503,9 +446,11 @@ const handleDOMChanges = () => {
         // The menu is present, so try to initialize our UI.
         // The guard clause inside initialize() will prevent it from running if it's already there.
         initialize();
-    } else if (syncLocalActive) {  // If the menu is not present and we are syncing, stop the sync process.
-        stopSyncLocalProcess();
+    } else {
+        if (syncLocalActive) stopSyncLocalProcess();
+        if (syncOnlineActive) stopSyncOnlineProcess();
     }
+
 };
 
 // Create an observer that calls our handler function.
