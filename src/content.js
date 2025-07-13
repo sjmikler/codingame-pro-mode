@@ -1,5 +1,16 @@
 'use strict';
 
+// FILE logger.js
+const libName = 'CodinGame Pro Layout';
+const styles = 'background: #5c3cd4; color: #fff; padding: 2px 6px; border-radius: 3px;';
+const logError = (...args) => {
+    console.error(`%c${libName}`, styles, ...args);
+};
+const log = (...args) => {
+    console.log(`%c${libName}`, styles, ...args);
+};
+// ENDFILE
+
 // --- SCRIPT LOGIC ---
 let isProLayoutActive = localStorage.getItem('isProLayoutActive') !== 'false';
 let proLayoutObserver = null;
@@ -10,10 +21,53 @@ let syncLocalInterval = null;
 let syncLocalLastModified = 0;
 
 let syncOnlineActive = false;
-let syncOnlineFileHandle = null;
+let syncFileHandle = null;
 
 function fileSystemAccessApiAvailable() {
-    return 'showOpenFilePicker' in self  // Check if the File System Access API is available in the current browser
+    // Check if the File System Access API is available in the current browser
+    return 'showOpenFilePicker' in self && typeof window.showOpenFilePicker === 'function';
+}
+
+async function getFileHandle(permission) {
+    if (syncFileHandle === null) {
+        const [newHandle] = await window.showOpenFilePicker();
+        syncFileHandle = newHandle;
+    }
+
+    const hasPermission = await verifyPermission(syncFileHandle, permission);
+    if (!hasPermission) {
+        log("Permission to %s was not granted.", permission);
+        return false;
+    }
+    return true;
+}
+
+function maybeClearFileHandle() {
+    if (!syncOnlineActive && !syncLocalActive) syncFileHandle = null;
+}
+
+/**
+ * Verifies and, if necessary, requests write permission for a file handle.
+ * @param {FileSystemFileHandle} fileHandle The file handle to check.
+ * @param {string} permission The permission to check ('readwrite' or 'read').
+ * @returns {Promise<boolean>} True if permission is granted, false otherwise.
+ */
+async function verifyPermission(fileHandle, permission) {
+    const options = {mode: permission};
+
+    // Check if permission is already granted.
+    if ((await fileHandle.queryPermission(options)) === 'granted') {
+        return true;
+    }
+
+    // If not granted, request it.
+    if ((await fileHandle.requestPermission(options)) === 'granted') {
+        return true;
+    }
+
+    // If permission is still not granted, return false.
+    logError("Write permission was not granted.");
+    return false;
 }
 
 // --- PRO LAYOUT FUNCTIONALITY --
@@ -175,23 +229,29 @@ function updateTimestampDisplay() {
             codeTimestamp = document.createElement('div');
             codeTimestamp.className = 'code-timestamp';
             codeManagement.appendChild(codeTimestamp);
-        } else return;
+            log("Created timestamp display.");
+        } else {
+            return;
+        }
     }
 
     const start = new Date(Date.now());
     codeTimestamp.textContent = 'Last synchronized: ' + start.toLocaleString();
 }
 
-function maybe_remove_timestamp() {
+function maybeRemoveTimestamp() {
     let codeTimestamp = document.querySelector(".code-timestamp");
-    if (codeTimestamp && !syncOnlineActive && !syncLocalActive) codeTimestamp.remove();
+    if (codeTimestamp && !syncOnlineActive && !syncLocalActive) {
+        log("Removing timestamp display.");
+        codeTimestamp.remove();
+    }
 }
 
 
 // --- SYNC LOCAL FUNCTIONALITY ---
 function updateEditorCode(code) {
     if (code && code !== currentCode) {
-        console.log("Updating editor code...");
+        log("Updating editor code.");
 
         currentCode = code;
         const eventData = {status: 'updateCode', code: code.replace(/\r\n|\r/g, '\n')};
@@ -203,20 +263,22 @@ function updateEditorCode(code) {
 
 
 // Observes the file for changes and updates the editor
-async function observeFileForSyncLocal(handle) {
+async function observeFileForSyncLocal() {
     // Immediately update with the initial content
-    const initialFile = await handle.getFile();
+    const initialFile = await syncFileHandle.getFile();
     syncLocalLastModified = initialFile.lastModified;
     updateEditorCode(await initialFile.text());
 
     syncLocalInterval = setInterval(async () => {
         try {
-            if ((await handle.queryPermission({mode: 'read'})) !== 'granted') {
+            const hasPermission = await verifyPermission(syncFileHandle, 'read');
+            if (!hasPermission) {
+                log("Permission to read the file was not granted.");
                 stopSyncLocalProcess(); // Stop if permission is revoked
                 return;
             }
 
-            const file = await handle.getFile();
+            const file = await syncFileHandle.getFile();
             if (file.lastModified > syncLocalLastModified) {
                 syncLocalLastModified = file.lastModified;
                 updateEditorCode(await file.text());
@@ -230,15 +292,26 @@ async function observeFileForSyncLocal(handle) {
 
 // Starts the sync process
 async function startSyncLocalProcess() {
-    try {
-        const [newHandle] = await window.showOpenFilePicker();
-        syncLocalActive = true;
+    if (syncLocalActive) return;
 
+    try {
+        let sucess = await getFileHandle('read');
+        if (!sucess) {
+            logError("Failed to get file handle for sync.");
+            return;
+        }
+
+        syncLocalActive = true;
         const button = document.querySelector('.sync-local-entry .menu-entry-inner');
         if (button) button.classList.toggle('selected', true);
-        await observeFileForSyncLocal(newHandle);
-    } catch (err) {
-        if (err.name !== 'AbortError') console.error(err);
+        await observeFileForSyncLocal();
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            log("Aborted file picker.");
+        } else {
+            logError("Failed to start sync process:", error);
+        }
+        stopSyncLocalProcess();
     }
 }
 
@@ -251,6 +324,8 @@ function stopSyncLocalProcess() {
         syncLocalInterval = null;
     }
     syncLocalActive = false;
+    maybeClearFileHandle();
+    maybeRemoveTimestamp();
 
     const button = document.querySelector('.sync-local-entry .menu-entry-inner');
     if (button) button.classList.toggle('selected', false);
@@ -268,15 +343,17 @@ function createSyncLocalButton() {
     const button = document.createElement('button');
     button.className = 'menu-entry-inner';
 
-    button.onclick = () => {
+    button.onclick = async () => {
         if (fileSystemAccessApiAvailable() === false) {
             alert("File System Access API not available. To use this feature, enable:\n\nchrome://flags/#file-system-access-api");
             return;
         }
 
-        if (syncLocalActive) stopSyncLocalProcess();
-        else startSyncLocalProcess();
-
+        if (syncLocalActive) {
+            stopSyncLocalProcess();
+        } else {
+            await startSyncLocalProcess();
+        }
     };
 
     const iconElement = document.createElement('div');
@@ -293,7 +370,7 @@ function createSyncLocalButton() {
     const uploadFileEntry = menuContainer.querySelector('.menu-entry.settings');
     if (uploadFileEntry) {
         uploadFileEntry.insertAdjacentElement('afterend', menuEntryDiv);
-    } else menuContainer.appendChild(menuEntryDiv);
+    }
 
 }
 
@@ -302,9 +379,16 @@ function createSyncLocalButton() {
 
 // --- SYNC ONLINE FUNCTIONALITY ---
 async function startSyncOnlineProcess() {
+    if (syncOnlineActive) return;
+
     try {
-        const [newHandle] = await window.showOpenFilePicker();
-        syncOnlineFileHandle = newHandle;
+        let success = await getFileHandle('readwrite');
+        if (!success) {
+            logError("Failed to get file handle for sync.");
+            return;
+        }
+
+        syncOnlineActive = true;
 
         { // Enable synchronization
             let eventData = {status: 'synchronized', value: true};
@@ -318,64 +402,76 @@ async function startSyncOnlineProcess() {
             window.document.dispatchEvent(ev);
         }
 
-        syncOnlineActive = true;
-
         const button = document.querySelector('.sync-online-entry .menu-entry-inner');
         if (button) button.classList.toggle('selected', true);
-        console.log("Sync Online started. Your local file will be updated when changes are made.");
+        log("Sync Online started, your local file will be updated.");
 
-    } catch (err) {
-        if (err.name !== 'AbortError') {
-            console.error(err);
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            log("Aborted file picker.");
+        } else {
+            logError("Failed to start sync process:", error);
         }
+        stopSyncOnlineProcess();
     }
 }
 
-// Stops the sync process
 function stopSyncOnlineProcess() {
+    if (!syncOnlineActive) return;
+
     // Disable synchronization
     let eventData = {status: 'synchronized', value: false};
     let ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
     window.document.dispatchEvent(ev);
 
     syncOnlineActive = false;
-    syncOnlineFileHandle = null;
+    maybeClearFileHandle();
+    maybeRemoveTimestamp();
 
     const button = document.querySelector('.sync-online-entry .menu-entry-inner');
     if (button) button.classList.toggle('selected', false);
-    maybe_remove_timestamp();
 }
 
 async function writeCodeToLocalFile(code) {
-    if (!syncOnlineFileHandle) return;
+    if (!syncFileHandle) {
+        logError("No file handle available for writing.");
+        stopSyncOnlineProcess();
+        return;
+    }
+
     try {
-        const writable = await syncOnlineFileHandle.createWritable();
+        const writable = await syncFileHandle.createWritable();
         await writable.write(code);
         await writable.close();
 
         // If the local-to-online sync is also active, update its timestamp
         // to prevent it from immediately re-uploading this change.
         if (syncLocalActive) {
-            const file = await syncOnlineFileHandle.getFile();
+            const file = await syncFileHandle.getFile();
             syncLocalLastModified = file.lastModified;
         }
     } catch (error) {
-        console.error("Failed to write to file, stopping sync.", error);
+        logError("Failed write to local file:", error);
         stopSyncOnlineProcess();
     }
 }
 
-function handleSyncOnlineEvents(event) {
+async function handleSyncOnlineEvents(event) {
     if (!syncOnlineActive) return;
-    console.log("Received event from IDE:", event.detail);
 
     if (event.detail.code && event.detail.code !== currentCode) {
+        const hasPermission = await verifyPermission(syncFileHandle, 'readwrite');
+        if (!hasPermission) {
+            logError("Write permission was not granted.");
+            stopSyncOnlineProcess();
+            return;
+        }
+
         currentCode = event.detail.code;
-        writeCodeToLocalFile(event.detail.code);
-        console.log("Code written to local file.");
+        await writeCodeToLocalFile(event.detail.code);
+        log("Code updated in local file.");
         updateTimestampDisplay();
     }
-
 }
 
 function createSyncOnlineButton() {
@@ -390,14 +486,17 @@ function createSyncOnlineButton() {
 
     window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvents);
 
-    button.onclick = () => {
-        if (typeof window.showOpenFilePicker !== 'function') {
-            alert("File System Access API not available.");
+    button.onclick = async () => {
+        if (fileSystemAccessApiAvailable() === false) {
+            alert("File System Access API not available. To use this feature, enable:\n\nchrome://flags/#file-system-access-api");
             return;
         }
-        if (syncOnlineActive) stopSyncOnlineProcess();
-        else startSyncOnlineProcess();
 
+        if (syncOnlineActive) {
+            stopSyncOnlineProcess();
+        } else {
+            await startSyncOnlineProcess();
+        }
     };
 
     const iconElement = document.createElement('div');
@@ -447,8 +546,8 @@ const handleDOMChanges = () => {
         // The guard clause inside initialize() will prevent it from running if it's already there.
         initialize();
     } else {
-        if (syncLocalActive) stopSyncLocalProcess();
-        if (syncOnlineActive) stopSyncOnlineProcess();
+        stopSyncLocalProcess();
+        stopSyncOnlineProcess();
     }
 
 };
