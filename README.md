@@ -1,6 +1,7 @@
 # CodinGame Pro Layout
 
 [Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
+[Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
 
 Reclaim your precious screen real estate in CodinGame IDE.
 
@@ -21,11 +22,23 @@ This is a toggle button. Click it again to restore the default layout.
 
 ## Synchronization Functionality
 
-This extension also offers synchronization functionality. No external apps are necessary. You can choose to use only a one-way sync or use both for a two-way sync.
+This extension offers code synchronization functionality. No external apps are necessary. You can choose to use only a one-way sync or use both for a two-way sync.
 
-> This feature requires File System Access API. It is active in Goolge Chrome, but other Chromium browsers might require explicit activation.
+### Browser support
+
+* **Chrome**: works out of the box
+* **Edge**: works out of the box
+* **Brave**: works if API is enabled via `chrome://flags`
+* **Firefox**: won't work
+
+This feature requires File System Access API. Some browsers might require explicit activation via `chrome://flags`.
+
+Click: [chrome://flags/#file-system-access-api](chrome://flags/#file-system-access-api)
+
+
+> Without FileSystemAccessAPI the extension will still work, but with limited feature set.
 >
-> `chrome://flags/#file-system-access-api`
+> Read more about File System Access API: https://wicg.github.io/file-system-access.
 
 ### Sync Local button
 

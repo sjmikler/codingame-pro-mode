@@ -20,5 +20,10 @@
         "src/content.js"
       ]
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{0b1eb558-4aa2-4509-91ef-9aab8cabe4ed}"
+    }
+  }
 }
