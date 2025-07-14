@@ -2,24 +2,16 @@
 
 [Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
 
-Reclaim your precious screen real estate in CodinGame IDE.
-
-Automatically synchronize your local code with the online editor.
-
----
-
 Do you prefer coding in your own local editor? This extension optimizes the CodinGame UI for you. It introduces **Pro Layou**t, which hides the online editor to reclaim screen space and provides an expanded console for a better view of your test results.
 
-It also features seamless two-way synchronization:
+It also features seamless two-way code synchronization:
 
 - **Sync Local**: Automatically reflects changes from your local file in the online editor.
 - **Sync Online**: Instantly saves code from the online editor back to your local file.
 
----
+## Pro Layout
 
-## Pro Layout button
-
-Clicking the button has the following effects:
+Clicking the **Pro Layout** button has the following effects:
 
 * Hides the code editor
 * Moves the 'Console output' to the right
@@ -40,12 +32,10 @@ This extension offers code synchronization functionality. No external apps are n
 * **Chrome**: works out of the box
 * **Brave**: works if API is enabled
 
-Synchronization requires the File System Access API. In some browser, it is not activated by default and needs a manual activation. To manually enable the API, go to: `chrome://flags/#file-system-access-api`. With the API disabled, the extension will still work, but won't offer the Synchronization functionality.
-
-You can read more about the File System Access API: https://wicg.github.io/file-system-access.
+Synchronization requires the File System Access API. If this API is disabled or not supported, the sync buttons will be grayed out, but the Pro Layout feature will still work perfectly. To manually enable the API, go to: `chrome://flags/#file-system-access-api`.
 
 ## Troubleshooting
 
 > Sync Local / Online buttons are greyed out
 
-This means that the extension is not able to access the local file system. Make sure you have enabled File System Access API in your browser settings.
+This means the extension cannot access the local file system. Please check the compatibility table above. If you are using a Chromium-based browser like Brave, you may need to manually enable the API by navigating to chrome://flags/#file-system-access-api and enabling the flag.
