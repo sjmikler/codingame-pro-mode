@@ -370,7 +370,7 @@ function initializeUI() {
         };
         const fallbackButton = createMenuButton({
             id: 'sync-local',
-            text: 'Upload File',
+            text: 'Upload Code',
             icon: ICONS.SYNC_UP,
             onClick: () => fileInput.click(),
         });
