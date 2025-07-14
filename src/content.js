@@ -1,6 +1,6 @@
 'use strict';
 
-// FILE logger.js
+// --- LOGGING ---
 const libName = 'CodinGame Pro Layout';
 const styles = 'background: #5c3cd4; color: #fff; padding: 2px 6px; border-radius: 3px;';
 const logError = (...args) => {
@@ -9,9 +9,11 @@ const logError = (...args) => {
 const log = (...args) => {
     console.log(`%c${libName}`, styles, ...args);
 };
-// ENDFILE
+// --- LOGGING ---
 
-// --- SCRIPT LOGIC ---
+// --- GLOBAL AND CONSTANTS ---
+const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+
 let isProLayoutActive = localStorage.getItem('isProLayoutActive') !== 'false';
 let proLayoutObserver = null;
 let currentCode = '';
@@ -23,6 +25,23 @@ let syncLocalLastModified = 0;
 let syncOnlineActive = false;
 let syncFileHandle = null;
 
+// A cloud with a DOWN arrow (from your new reference)
+const iconDownSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
+    <rect width="24" height="24" opacity="0"/>
+    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
+    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z"/>
+</svg>`;
+
+// A cloud with an UP arrow (arrow path is rotated 180 degrees)
+const iconUpSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
+    <rect width="24" height="24" opacity="0"/>
+    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
+    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z" transform="rotate(180, 12, 16.5)"/>
+</svg>`;
+// --- GLOBAL AND CONSTANTS ---
+
+
+// --- HELPER UTILITIES ---
 function fileSystemAccessApiAvailable() {
     // Check if the File System Access API is available in the current browser
     return 'showOpenFilePicker' in self && typeof window.showOpenFilePicker === 'function';
@@ -69,6 +88,35 @@ async function verifyPermission(fileHandle, permission) {
     logError("Write permission was not granted.");
     return false;
 }
+
+
+function updateTimestampDisplay() {
+    let codeTimestamp = document.querySelector(".code-timestamp");
+    if (!codeTimestamp) {
+        const codeManagement = document.querySelector(".ide-header");
+        if (codeManagement) {
+            codeTimestamp = document.createElement('div');
+            codeTimestamp.className = 'code-timestamp';
+            codeManagement.appendChild(codeTimestamp);
+            log("Created timestamp display.");
+        } else {
+            return;
+        }
+    }
+
+    const start = new Date(Date.now());
+    codeTimestamp.textContent = 'Last synchronized: ' + start.toLocaleString();
+}
+
+function maybeRemoveTimestamp() {
+    let codeTimestamp = document.querySelector(".code-timestamp");
+    if (codeTimestamp && !syncOnlineActive && !syncLocalActive) {
+        log("Removing timestamp display.");
+        codeTimestamp.remove();
+    }
+}
+
+// --- HELPER UTILITIES ---
 
 // --- PRO LAYOUT FUNCTIONALITY --
 function activateProLayout() {
@@ -149,118 +197,26 @@ function createProLayoutToggleButton() {
         updateButtonAppearance();
     };
     const settingsEntry = menuContainer.querySelector('.menu-entry.settings');
-    if (settingsEntry) {
-        settingsEntry.insertAdjacentElement('afterend', menuEntryDiv);
-    } else {
-        menuContainer.appendChild(menuEntryDiv);
-    }
+    if (settingsEntry) settingsEntry.insertAdjacentElement('afterend', menuEntryDiv);
     updateButtonAppearance();
 }
 
 // --- PRO LAYOUT FUNCTIONALITY ---
 
-
-// --- UPLOAD CODE FUNCTIONALITY ---
-// --- CURRENTLY UNUSED
-
-function createUploadCodeButton() {
-    const menuContainer = document.querySelector('.menu-entries');
-    if (!menuContainer) return;
-
-    const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="pro-icon" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>`;
-    const menuEntryDiv = document.createElement('div');
-    menuEntryDiv.className = 'menu-entry load-file-entry';
-    const button = document.createElement('button');
-    button.className = 'menu-entry-inner';
-    const iconElement = document.createElement('div');
-    iconElement.innerHTML = iconSvg;
-    const span = document.createElement('span');
-    span.className = 'entry-label';
-    span.textContent = 'Upload Code';
-    button.appendChild(iconElement.firstChild);
-    button.appendChild(span);
-    menuEntryDiv.appendChild(button);
-
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.style.display = 'none';
-    button.onclick = () => fileInput.click();
-    fileInput.onchange = (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => updateEditorCode(e.target.result);
-        reader.readAsText(file);
-        event.target.value = '';
-    };
-    menuEntryDiv.appendChild(fileInput);
-
-    const layoutToggleEntry = menuContainer.querySelector('.menu-entry.settings');
-    if (layoutToggleEntry) {
-        layoutToggleEntry.insertAdjacentElement('afterend', menuEntryDiv);
-    } else {
-        menuContainer.appendChild(menuEntryDiv);
-    }
-}
-
-// --- UPLOAD CODE FUNCTIONALITY ---
-
-
-// A cloud with a DOWN arrow (from your new reference)
-const iconDownSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" opacity="0"/>
-    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
-    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z"/>
-</svg>`;
-
-// A cloud with an UP arrow (arrow path is rotated 180 degrees)
-const iconUpSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" opacity="0"/>
-    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
-    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z" transform="rotate(180, 12, 16.5)"/>
-</svg>`;
-
-
-function updateTimestampDisplay() {
-    let codeTimestamp = document.querySelector(".code-timestamp");
-    if (!codeTimestamp) {
-        const codeManagement = document.querySelector(".ide-header");
-        if (codeManagement) {
-            codeTimestamp = document.createElement('div');
-            codeTimestamp.className = 'code-timestamp';
-            codeManagement.appendChild(codeTimestamp);
-            log("Created timestamp display.");
-        } else {
-            return;
-        }
-    }
-
-    const start = new Date(Date.now());
-    codeTimestamp.textContent = 'Last synchronized: ' + start.toLocaleString();
-}
-
-function maybeRemoveTimestamp() {
-    let codeTimestamp = document.querySelector(".code-timestamp");
-    if (codeTimestamp && !syncOnlineActive && !syncLocalActive) {
-        log("Removing timestamp display.");
-        codeTimestamp.remove();
-    }
-}
-
-
 // --- SYNC LOCAL FUNCTIONALITY ---
 function updateEditorCode(code) {
-    if (code && code !== currentCode) {
+    if (code) {
         log("Updating editor code.");
 
         currentCode = code;
-        const eventData = {status: 'updateCode', code: code.replace(/\r\n|\r/g, '\n')};
+        let eventData = {status: 'updateCode', code: code.replace(/\r\n|\r/g, '\n')};
+
+        if (isFirefox) eventData = cloneInto(eventData, window);
         const ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
         window.document.dispatchEvent(ev);
         updateTimestampDisplay();
     }
 }
-
 
 // Observes the file for changes and updates the editor
 async function observeFileForSyncLocal() {
@@ -332,6 +288,15 @@ function stopSyncLocalProcess() {
 
 }
 
+function oneTimeUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => updateEditorCode(e.target.result);
+    reader.readAsText(file);
+    event.target.value = '';
+}
 
 function createSyncLocalButton() {
     const menuContainer = document.querySelector('.menu-entries');
@@ -343,18 +308,23 @@ function createSyncLocalButton() {
     const button = document.createElement('button');
     button.className = 'menu-entry-inner';
 
-    button.onclick = async () => {
-        if (fileSystemAccessApiAvailable() === false) {
-            alert("File System Access API not available. To use this feature, enable:\n\nchrome://flags/#file-system-access-api");
-            return;
-        }
-
-        if (syncLocalActive) {
-            stopSyncLocalProcess();
-        } else {
-            await startSyncLocalProcess();
-        }
-    };
+    if (fileSystemAccessApiAvailable()) {
+        button.onclick = async () => {
+            if (syncLocalActive) {
+                stopSyncLocalProcess();
+            } else {
+                await startSyncLocalProcess();
+            }
+        };
+    } else {
+        // fallback when FileSystemAccessAPI is not available
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.style.display = 'none';
+        button.onclick = () => fileInput.click();
+        fileInput.onchange = oneTimeUpload;
+        menuEntryDiv.appendChild(fileInput);
+    }
 
     const iconElement = document.createElement('div');
     iconElement.innerHTML = iconUpSvg;
@@ -367,15 +337,11 @@ function createSyncLocalButton() {
     button.appendChild(span);
     menuEntryDiv.appendChild(button);
 
-    const uploadFileEntry = menuContainer.querySelector('.menu-entry.settings');
-    if (uploadFileEntry) {
-        uploadFileEntry.insertAdjacentElement('afterend', menuEntryDiv);
-    }
-
+    const settingsEntry = menuContainer.querySelector('.menu-entry.settings');
+    if (settingsEntry) settingsEntry.insertAdjacentElement('afterend', menuEntryDiv);
 }
 
 // --- SYNC LOCAL FUNCTIONALITY ---
-
 
 // --- SYNC ONLINE FUNCTIONALITY ---
 async function startSyncOnlineProcess() {
@@ -484,20 +450,19 @@ function createSyncOnlineButton() {
     const button = document.createElement('button');
     button.className = 'menu-entry-inner';
 
-    window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvents);
+    if (fileSystemAccessApiAvailable()) {
+        window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvents);
 
-    button.onclick = async () => {
-        if (fileSystemAccessApiAvailable() === false) {
-            alert("File System Access API not available. To use this feature, enable:\n\nchrome://flags/#file-system-access-api");
-            return;
-        }
-
-        if (syncOnlineActive) {
-            stopSyncOnlineProcess();
-        } else {
-            await startSyncOnlineProcess();
-        }
-    };
+        button.onclick = async () => {
+            if (syncOnlineActive) {
+                stopSyncOnlineProcess();
+            } else {
+                await startSyncOnlineProcess();
+            }
+        };
+    } else {
+        button.disabled = true;
+    }
 
     const iconElement = document.createElement('div');
     iconElement.innerHTML = iconDownSvg;
@@ -509,17 +474,11 @@ function createSyncOnlineButton() {
     button.appendChild(iconElement.firstChild);
     button.appendChild(span);
     menuEntryDiv.appendChild(button);
-
-    const uploadFileEntry = menuContainer.querySelector('.menu-entry.settings');
-    if (uploadFileEntry) {
-        uploadFileEntry.insertAdjacentElement('afterend', menuEntryDiv);
-    } else {
-        menuContainer.appendChild(menuEntryDiv);
-    }
+    const settingsEntry = menuContainer.querySelector('.menu-entry.settings');
+    if (settingsEntry) settingsEntry.insertAdjacentElement('afterend', menuEntryDiv);
 }
 
 // --- SYNC ONLINE FUNCTIONALITY ---
-
 
 // --- INITIALIZATION ---
 function initialize() {
@@ -528,11 +487,9 @@ function initialize() {
         return;
     }
 
-    // createUploadCodeButton();
     createSyncOnlineButton();
     createSyncLocalButton();
     createProLayoutToggleButton();
-
     if (isProLayoutActive) activateProLayout();
 }
 
@@ -549,7 +506,6 @@ const handleDOMChanges = () => {
         stopSyncLocalProcess();
         stopSyncOnlineProcess();
     }
-
 };
 
 // Create an observer that calls our handler function.
