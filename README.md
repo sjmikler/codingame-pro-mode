@@ -1,11 +1,21 @@
 # CodinGame Pro Layout
 
-* [Download for Chrome](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
-* [Download for Firefox](https://addons.mozilla.org/en-US/firefox/addon/codingame-pro-layout/) (limited feature set)
+[Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
 
 Reclaim your precious screen real estate in CodinGame IDE.
 
 Automatically synchronize your local code with the online editor.
+
+---
+
+If you edit your code locally, instead of using the online code editor, you might notice that the code editor is useless and takes away your precious screen space. This extension introduces **Pro Layout** that hides code editor and adds a larger Console output view.
+
+This extension comes with built-in synchronization functionality:
+
+- **Sync Local**: Edit the code locally and the changes will be reflected online.
+- **Sync Online**: Edit the code online and the changes will be reflected locally.
+
+---
 
 ## Pro Layout button
 
@@ -20,29 +30,22 @@ This is a toggle button. Click it again to restore the default layout.
 ![screenshot](images/screenshot.png)
 *Screenshot showing how 'Pro Layout' looks in practice.*
 
-## Synchronization Functionality
+## Code Synchronization
 
 This extension offers code synchronization functionality. No external apps are necessary. You can choose to use only a one-way sync or use both for a two-way sync.
 
 ### Browser support
 
-* **Chrome**: works out of the box
 * **Edge**: works out of the box
+* **Chrome**: works out of the box
 * **Brave**: works if API is enabled
-* **Firefox**: won't work
 
-This feature requires File System Access API. Some browsers might require a manual activation.
+Synchronization requires File System Access API. Some browsers might require a manual activation of it. To manually enable the API, go to: `chrome://flags/#file-system-access-api`. With the API disabled, the extension will still work, but won't offer the Synchronization functionality.
 
-To manually enable the API, go to: `chrome://flags/#file-system-access-api`
+You can read more about File System Access API: https://wicg.github.io/file-system-access.
 
-> Without File System Access API the extension will still work, but with limited feature set.
->
-> Read more about File System Access API: https://wicg.github.io/file-system-access.
+## Troubleshooting
 
-### Sync Local button
+> Sync Local / Online buttons are not showing up
 
-After clicking the button, select a local file that will be continuously watched. Edit the code locally and the changes will be reflected online.
-
-### Sync Online button
-
-After clicking the button, select a local file that will be continuously updated. Edit the code online and the changes will be reflected locally.
+This means that the extension is not able to access the local file system. Make sure you have enabled File System Access API in your browser settings.
