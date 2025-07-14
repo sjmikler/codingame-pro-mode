@@ -8,12 +8,12 @@ Automatically synchronize your local code with the online editor.
 
 ---
 
-If you edit your code locally, instead of using the online code editor, you might notice that the code editor is useless and takes away your precious screen space. This extension introduces **Pro Layout** that hides code editor and adds a larger Console output view.
+Do you prefer coding in your own local editor? This extension optimizes the CodinGame UI for you. It introduces **Pro Layou**t, which hides the online editor to reclaim screen space and provides an expanded console for a better view of your test results.
 
-This extension comes with built-in synchronization functionality:
+It also features seamless two-way synchronization:
 
-- **Sync Local**: Edit the code locally and the changes will be reflected online.
-- **Sync Online**: Edit the code online and the changes will be reflected locally.
+- **Sync Local**: Automatically reflects changes from your local file in the online editor.
+- **Sync Online**: Instantly saves code from the online editor back to your local file.
 
 ---
 
