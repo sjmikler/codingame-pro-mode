@@ -3,516 +3,412 @@
 // --- LOGGING ---
 const libName = 'CodinGame Pro Layout';
 const styles = 'background: #5c3cd4; color: #fff; padding: 2px 6px; border-radius: 3px;';
-const logError = (...args) => {
-    console.error(`%c${libName}`, styles, ...args);
+const logError = (...args) => console.error(`%c${libName}`, styles, ...args);
+const log = (...args) => console.log(`%c${libName}`, styles, ...args);
+// --- END LOGGING ---
+
+
+// --- CONSTANTS ---
+const IS_FIREFOX = navigator.userAgent.toLowerCase().includes('firefox');
+const FSO_API_AVAILABLE = 'showOpenFilePicker' in self && typeof window.showOpenFilePicker === 'function';
+
+const ICONS = {
+    PRO_LAYOUT: `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="pro-icon"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>`,
+    SYNC_UP: `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" opacity="0"/><path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/><path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z" transform="rotate(180, 12, 16.5)"/></svg>`,
+    SYNC_DOWN: `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" opacity="0"/><path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/><path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z"/></svg>`,
 };
-const log = (...args) => {
-    console.log(`%c${libName}`, styles, ...args);
+// --- END CONSTANTS ---
+
+
+// --- STATE MANAGEMENT ---
+// Grouping state variables into a single object for better organization.
+const state = {
+    isInitialized: false,
+    isProLayoutActive: localStorage.getItem('isProLayoutActive') !== 'false',
+    proLayoutObserver: null,
+    currentCode: '',
+    sync: {
+        local: {
+            active: false,
+            interval: null,
+            lastModified: 0,
+        },
+        online: {
+            active: false,
+        },
+        fileHandle: null,
+    },
 };
-// --- LOGGING ---
-
-// --- GLOBAL AND CONSTANTS ---
-const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
-
-let isProLayoutActive = localStorage.getItem('isProLayoutActive') !== 'false';
-let proLayoutObserver = null;
-let currentCode = '';
-
-let syncLocalActive = false;
-let syncLocalInterval = null;
-let syncLocalLastModified = 0;
-
-let syncOnlineActive = false;
-let syncFileHandle = null;
-
-// A cloud with a DOWN arrow (from your new reference)
-const iconDownSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" opacity="0"/>
-    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
-    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z"/>
-</svg>`;
-
-// A cloud with an UP arrow (arrow path is rotated 180 degrees)
-const iconUpSvg = `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" opacity="0"/>
-    <path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/>
-    <path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z" transform="rotate(180, 12, 16.5)"/>
-</svg>`;
-// --- GLOBAL AND CONSTANTS ---
+// --- END STATE MANAGEMENT ---
 
 
 // --- HELPER UTILITIES ---
-function fileSystemAccessApiAvailable() {
-    // Check if the File System Access API is available in the current browser
-    return 'showOpenFilePicker' in self && typeof window.showOpenFilePicker === 'function';
-}
-
-async function getFileHandle(permission) {
-    if (syncFileHandle === null) {
-        const [newHandle] = await window.showOpenFilePicker();
-        syncFileHandle = newHandle;
-    }
-
-    const hasPermission = await verifyPermission(syncFileHandle, permission);
-    if (!hasPermission) {
-        log("Permission to %s was not granted.", permission);
-        return false;
-    }
-    return true;
-}
-
-function maybeClearFileHandle() {
-    if (!syncOnlineActive && !syncLocalActive) syncFileHandle = null;
-}
-
 /**
- * Verifies and, if necessary, requests write permission for a file handle.
+ * Verifies and, if necessary, requests a permission for a file handle.
  * @param {FileSystemFileHandle} fileHandle The file handle to check.
- * @param {string} permission The permission to check ('readwrite' or 'read').
+ * @param {'read' | 'readwrite'} mode The permission mode to check.
  * @returns {Promise<boolean>} True if permission is granted, false otherwise.
  */
-async function verifyPermission(fileHandle, permission) {
-    const options = {mode: permission};
-
-    // Check if permission is already granted.
-    if ((await fileHandle.queryPermission(options)) === 'granted') {
-        return true;
-    }
-
-    // If not granted, request it.
-    if ((await fileHandle.requestPermission(options)) === 'granted') {
-        return true;
-    }
-
-    // If permission is still not granted, return false.
-    logError("Write permission was not granted.");
+async function verifyPermission(fileHandle, mode) {
+    const options = {mode};
+    if ((await fileHandle.queryPermission(options)) === 'granted') return true;
+    if ((await fileHandle.requestPermission(options)) === 'granted') return true;
+    logError(`Permission for "${mode}" was not granted.`);
     return false;
 }
 
+/**
+ * Gets a file handle, requesting it from the user if one is not already stored.
+ * @param {'read' | 'readwrite'} mode The permission needed for the handle.
+ * @returns {Promise<boolean>} True if the handle was acquired and has permission.
+ */
+async function getFileHandle(mode) {
+    try {
+        if (!state.sync.fileHandle) {
+            const [newHandle] = await window.showOpenFilePicker();
+            state.sync.fileHandle = newHandle;
+        }
+        return await verifyPermission(state.sync.fileHandle, mode);
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            log("User aborted the file picker.");
+        } else {
+            logError("Error getting file handle:", error);
+        }
+        return false;
+    }
+}
 
+/**
+ * Dispatches a custom event to communicate with the page's scripts.
+ * @param {string} eventName The name of the custom event.
+ * @param {object} detail The data to send with the event.
+ */
+function dispatchCustomEvent(eventName, detail) {
+    const eventData = IS_FIREFOX ? cloneInto(detail, window) : detail;
+    window.document.dispatchEvent(new CustomEvent(eventName, {detail: eventData}));
+}
+
+/**
+ * Creates or updates the timestamp display in the UI.
+ */
 function updateTimestampDisplay() {
     let codeTimestamp = document.querySelector(".code-timestamp");
     if (!codeTimestamp) {
         const codeManagement = document.querySelector(".ide-header");
-        if (codeManagement) {
-            codeTimestamp = document.createElement('div');
-            codeTimestamp.className = 'code-timestamp';
-            codeManagement.appendChild(codeTimestamp);
-            log("Created timestamp display.");
-        } else {
-            return;
-        }
+        if (!codeManagement) return; // Exit if the target element isn't there
+        codeTimestamp = document.createElement('div');
+        codeTimestamp.className = 'code-timestamp';
+        codeManagement.appendChild(codeTimestamp);
+        log("Created timestamp display.");
     }
-
-    const start = new Date(Date.now());
-    codeTimestamp.textContent = 'Last synchronized: ' + start.toLocaleString();
+    codeTimestamp.textContent = `Last synchronized: ${new Date().toLocaleString()}`;
 }
 
+/**
+ * Removes the timestamp display if no sync processes are active.
+ */
 function maybeRemoveTimestamp() {
-    let codeTimestamp = document.querySelector(".code-timestamp");
-    if (codeTimestamp && !syncOnlineActive && !syncLocalActive) {
+    if (state.sync.local.active || state.sync.online.active) return;
+    const codeTimestamp = document.querySelector(".code-timestamp");
+    if (codeTimestamp) {
         log("Removing timestamp display.");
         codeTimestamp.remove();
     }
 }
 
-// --- HELPER UTILITIES ---
-
-// --- PRO LAYOUT FUNCTIONALITY --
-function activateProLayout() {
-    document.body.classList.add('pro-layout-active');
-
-    const statementBlock = document.querySelector('.statement-bloc');
-    const consoleBlock = document.querySelector('.console-bloc');
-    const actionsBlock = document.querySelector('.testcases-actions-container');
-    if (!consoleBlock || !actionsBlock) return;
-
-    const unminimizeButton = document.querySelector('.console-bloc .unminimize-button');
-    if (unminimizeButton) unminimizeButton.click();
-    const consoleHeaderButtons = document.querySelector('.console-bloc .header-buttons');
-    if (consoleHeaderButtons) consoleHeaderButtons.style.display = 'none';
-
-    const syncPanelPosition = () => {
-        if (!isProLayoutActive) return;
-        const targetLeft = actionsBlock.style.left;
-        if (targetLeft && consoleBlock.style.left !== targetLeft) {
-            consoleBlock.style.left = targetLeft;
-        }
-
-        const targetRight = statementBlock.style.right;
-        if (targetRight && actionsBlock.style.right !== targetRight) {
-            actionsBlock.style.right = targetRight;
-        }
-    };
-
-    proLayoutObserver = new MutationObserver(syncPanelPosition);
-    proLayoutObserver.observe(actionsBlock, {attributes: true, attributeFilter: ['style']});
-    syncPanelPosition();
+/**
+ * Clears the file handle if no sync processes are active.
+ */
+function maybeClearFileHandle() {
+    if (!state.sync.local.active && !state.sync.online.active) {
+        state.sync.fileHandle = null;
+    }
 }
 
+// --- END HELPER UTILITIES ---
 
-function deactivateProLayout() {
-    document.body.classList.remove('pro-layout-active');
 
-    if (proLayoutObserver) {
-        proLayoutObserver.disconnect();
-        proLayoutObserver = null;
+// --- PRO LAYOUT FUNCTIONALITY ---
+function toggleProLayout(enable) {
+    state.isProLayoutActive = enable;
+    localStorage.setItem('isProLayoutActive', enable);
+    document.body.classList.toggle('pro-layout-active', enable);
+
+    const consoleBlock = document.querySelector('.console-bloc');
+    const actionsBlock = document.querySelector('.testcases-actions-container');
+    const consoleHeaderButtons = document.querySelector('.console-bloc .header-buttons');
+
+    if (enable) {
+        if (!consoleBlock || !actionsBlock) return;
+
+        // Auto-unminimize the console when activating
+        const unminimizeButton = document.querySelector('.console-bloc .unminimize-button');
+        if (unminimizeButton) unminimizeButton.click();
+        if (consoleHeaderButtons) consoleHeaderButtons.style.display = 'none';
+
+        // This function keeps the console and actions blocks aligned.
+        const syncPanelPosition = () => {
+            const statementBlock = document.querySelector('.statement-bloc');
+            if (!statementBlock) return;
+            const targetLeft = actionsBlock.style.left;
+            const targetRight = statementBlock.style.right;
+            if (targetLeft && consoleBlock.style.left !== targetLeft) consoleBlock.style.left = targetLeft;
+            if (targetRight && actionsBlock.style.right !== targetRight) actionsBlock.style.right = targetRight;
+        };
+
+        state.proLayoutObserver = new MutationObserver(syncPanelPosition);
+        state.proLayoutObserver.observe(actionsBlock, {attributes: true, attributeFilter: ['style']});
+        syncPanelPosition(); // Initial sync
+    } else {
+        if (state.proLayoutObserver) state.proLayoutObserver.disconnect();
+        state.proLayoutObserver = null;
+        if (consoleBlock) consoleBlock.style.left = '';
+        if (consoleHeaderButtons) consoleHeaderButtons.style.display = '';
+        if (actionsBlock) actionsBlock.style.right = '';
+    }
+}
+
+// --- END PRO LAYOUT FUNCTIONALITY ---
+
+
+// --- SYNC FUNCTIONALITY ---
+
+// -- SYNC LOCAL (Upload from File to Editor) --
+function updateEditorCode(code) {
+    if (!code) return;
+    log("Updating editor code from local file.");
+    state.currentCode = code;
+    const cleanCode = code.replace(/\r\n|\r/g, '\n');
+    dispatchCustomEvent('ExternalEditorToIDE', {status: 'updateCode', code: cleanCode});
+    updateTimestampDisplay();
+}
+
+async function observeFileForChanges() {
+    try {
+        if (!await verifyPermission(state.sync.fileHandle, 'read')) {
+            stopSyncLocal();
+            return;
+        }
+
+        const file = await state.sync.fileHandle.getFile();
+        if (file.lastModified > state.sync.local.lastModified) {
+            log("Detected file change, updating editor.");
+            state.sync.local.lastModified = file.lastModified;
+            updateEditorCode(await file.text());
+        }
+    } catch (error) {
+        logError("Error observing file, stopping sync.", error);
+        stopSyncLocal();
+    }
+}
+
+async function startSyncLocal() {
+    if (state.sync.local.active) return;
+    if (!await getFileHandle('read')) return;
+
+    state.sync.local.active = true;
+    document.querySelector('.sync-local-button')?.classList.add('selected');
+
+    try {
+        const file = await state.sync.fileHandle.getFile();
+        state.sync.local.lastModified = file.lastModified;
+        await updateEditorCode(await file.text()); // Initial sync
+        state.sync.local.interval = setInterval(observeFileForChanges, 500);
+        log("Sync Local started.");
+    } catch (error) {
+        logError("Failed to start Sync Local process:", error);
+        stopSyncLocal();
+    }
+}
+
+function stopSyncLocal() {
+    if (!state.sync.local.active) return;
+    if (state.sync.local.interval) clearInterval(state.sync.local.interval);
+    state.sync.local.interval = null;
+    state.sync.local.active = false;
+    document.querySelector('.sync-local-button')?.classList.remove('selected');
+    maybeClearFileHandle();
+    maybeRemoveTimestamp();
+    log("Sync Local stopped.");
+}
+
+// -- SYNC ONLINE (Download from Editor to File) --
+async function writeCodeToLocalFile(code) {
+    if (!state.sync.fileHandle) {
+        logError("No file handle available for writing.");
+        stopSyncOnline();
+        return;
     }
 
-    const consoleBlock = document.querySelector('.console-bloc');
-    if (consoleBlock) consoleBlock.style.left = '';
-    const consoleHeaderButtons = document.querySelector('.console-bloc .header-buttons');
-    if (consoleHeaderButtons) consoleHeaderButtons.style.display = '';
-    const actionsBlock = document.querySelector('.testcases-actions-container');
-    if (actionsBlock) actionsBlock.style.right = '';
+    try {
+        const writable = await state.sync.fileHandle.createWritable();
+        await writable.write(code);
+        await writable.close();
+        updateTimestampDisplay();
+
+        // Prevent immediate re-upload if Sync Local is also active
+        if (state.sync.local.active) {
+            const file = await state.sync.fileHandle.getFile();
+            state.sync.local.lastModified = file.lastModified;
+        }
+    } catch (error) {
+        logError("Failed to write to local file. Stopping sync.", error);
+        stopSyncOnline();
+    }
 }
 
+async function handleSyncOnlineEvent(event) {
+    if (!state.sync.online.active || !event.detail.code || event.detail.code === state.currentCode) return;
+    if (!await verifyPermission(state.sync.fileHandle, 'readwrite')) {
+        stopSyncOnline();
+        return;
+    }
+    state.currentCode = event.detail.code;
+    await writeCodeToLocalFile(event.detail.code);
+    log("Code updated in local file.");
+}
 
-function createProLayoutToggleButton() {
+async function startSyncOnline() {
+    if (state.sync.online.active) return;
+    if (!await getFileHandle('readwrite')) return;
+
+    state.sync.online.active = true;
+    document.querySelector('.sync-online-button')?.classList.add('selected');
+
+    // Enable CodinGame's internal sync and request initial code
+    dispatchCustomEvent('ExternalEditorToIDE', {status: 'synchronized', value: true});
+    dispatchCustomEvent('ExternalEditorToIDE', {status: 'getCode'});
+
+    log("Sync Online started. Your local file will now be updated.");
+}
+
+function stopSyncOnline() {
+    if (!state.sync.online.active) return;
+
+    // Disable CodinGame's internal sync
+    dispatchCustomEvent('ExternalEditorToIDE', {status: 'synchronized', value: false});
+
+    state.sync.online.active = false;
+    document.querySelector('.sync-online-button')?.classList.remove('selected');
+    maybeClearFileHandle();
+    maybeRemoveTimestamp();
+    log("Sync Online stopped.");
+}
+
+// --- END SYNC FUNCTIONALITY ---
+
+
+// --- INITIALIZATION ---
+/**
+ * A reusable function to create a menu button.
+ * @param {{id: string, text: string, icon: string, onClick: function, disabled?: boolean}} options
+ */
+function createMenuButton({id, text, icon, onClick, disabled = false}) {
     const menuContainer = document.querySelector('.menu-entries');
-    if (!menuContainer) return;
+    const settingsEntry = menuContainer?.querySelector('.menu-entry.settings');
+    if (!settingsEntry) return null; // Can't add the button
 
-    const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="pro-icon"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>`;
     const menuEntryDiv = document.createElement('div');
-    menuEntryDiv.className = 'menu-entry pro-layout-entry';
+    menuEntryDiv.className = `menu-entry ${id}-entry`;
+
     const button = document.createElement('button');
-    button.className = 'menu-entry-inner';
+    button.className = `menu-entry-inner ${id}-button`;
+    button.onclick = onClick;
+    button.disabled = disabled;
+
     const iconElement = document.createElement('div');
-    iconElement.innerHTML = iconSvg;
+    iconElement.innerHTML = icon;
+
     const span = document.createElement('span');
     span.className = 'entry-label';
-    span.textContent = 'Pro Layout';
+    span.textContent = text;
+
     button.appendChild(iconElement.firstChild);
     button.appendChild(span);
     menuEntryDiv.appendChild(button);
 
-    function updateButtonAppearance() {
-        button.classList.toggle('selected', isProLayoutActive);
-    }
-
-    button.onclick = () => {
-        isProLayoutActive = !isProLayoutActive;
-        localStorage.setItem('isProLayoutActive', isProLayoutActive);
-        isProLayoutActive ? activateProLayout() : deactivateProLayout();
-        updateButtonAppearance();
-    };
-    const settingsEntry = menuContainer.querySelector('.menu-entry.settings');
-    if (settingsEntry) settingsEntry.insertAdjacentElement('afterend', menuEntryDiv);
-    updateButtonAppearance();
+    settingsEntry.insertAdjacentElement('afterend', menuEntryDiv);
+    return button;
 }
 
-// --- PRO LAYOUT FUNCTIONALITY ---
 
-// --- SYNC LOCAL FUNCTIONALITY ---
-function updateEditorCode(code) {
-    if (code) {
-        log("Updating editor code.");
+function initializeUI() {
+    if (state.isInitialized) return;
 
-        currentCode = code;
-        let eventData = {status: 'updateCode', code: code.replace(/\r\n|\r/g, '\n')};
+    // Sync Online Button (Download)
+    createMenuButton({
+        id: 'sync-online',
+        text: 'Sync Online',
+        icon: ICONS.SYNC_DOWN,
+        onClick: () => (state.sync.online.active ? stopSyncOnline() : startSyncOnline()),
+        disabled: !FSO_API_AVAILABLE,
+    });
 
-        if (isFirefox) eventData = cloneInto(eventData, window);
-        const ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
-        window.document.dispatchEvent(ev);
-        updateTimestampDisplay();
-    }
-}
-
-// Observes the file for changes and updates the editor
-async function observeFileForSyncLocal() {
-    // Immediately update with the initial content
-    const initialFile = await syncFileHandle.getFile();
-    syncLocalLastModified = initialFile.lastModified;
-    updateEditorCode(await initialFile.text());
-
-    syncLocalInterval = setInterval(async () => {
-        try {
-            const hasPermission = await verifyPermission(syncFileHandle, 'read');
-            if (!hasPermission) {
-                log("Permission to read the file was not granted.");
-                stopSyncLocalProcess(); // Stop if permission is revoked
-                return;
-            }
-
-            const file = await syncFileHandle.getFile();
-            if (file.lastModified > syncLocalLastModified) {
-                syncLocalLastModified = file.lastModified;
-                updateEditorCode(await file.text());
-            }
-        } catch (error) {
-            console.error("Error observing file, stopping sync.", error);
-            stopSyncLocalProcess();
-        }
-    }, 500);
-}
-
-// Starts the sync process
-async function startSyncLocalProcess() {
-    if (syncLocalActive) return;
-
-    try {
-        let sucess = await getFileHandle('read');
-        if (!sucess) {
-            logError("Failed to get file handle for sync.");
-            return;
-        }
-
-        syncLocalActive = true;
-        const button = document.querySelector('.sync-local-entry .menu-entry-inner');
-        if (button) button.classList.toggle('selected', true);
-        await observeFileForSyncLocal();
-    } catch (error) {
-        if (error.name === 'AbortError') {
-            log("Aborted file picker.");
-        } else {
-            logError("Failed to start sync process:", error);
-        }
-        stopSyncLocalProcess();
-    }
-}
-
-// Stops the sync process
-function stopSyncLocalProcess() {
-    if (!syncLocalActive) return;
-
-    if (syncLocalInterval) {
-        clearInterval(syncLocalInterval);
-        syncLocalInterval = null;
-    }
-    syncLocalActive = false;
-    maybeClearFileHandle();
-    maybeRemoveTimestamp();
-
-    const button = document.querySelector('.sync-local-entry .menu-entry-inner');
-    if (button) button.classList.toggle('selected', false);
-
-}
-
-function oneTimeUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => updateEditorCode(e.target.result);
-    reader.readAsText(file);
-    event.target.value = '';
-}
-
-function createSyncLocalButton() {
-    const menuContainer = document.querySelector('.menu-entries');
-    if (!menuContainer) return;
-
-    const menuEntryDiv = document.createElement('div');
-    menuEntryDiv.className = 'menu-entry sync-local-entry';
-
-    const button = document.createElement('button');
-    button.className = 'menu-entry-inner';
-
-    if (fileSystemAccessApiAvailable()) {
-        button.onclick = async () => {
-            if (syncLocalActive) {
-                stopSyncLocalProcess();
-            } else {
-                await startSyncLocalProcess();
-            }
-        };
+    // Sync Local Button (Upload)
+    if (FSO_API_AVAILABLE) {
+        createMenuButton({
+            id: 'sync-local',
+            text: 'Sync Local',
+            icon: ICONS.SYNC_UP,
+            onClick: () => (state.sync.local.active ? stopSyncLocal() : startSyncLocal()),
+        });
     } else {
-        // fallback when FileSystemAccessAPI is not available
+        // Fallback for browsers without File System Access API (e.g., Firefox)
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.style.display = 'none';
-        button.onclick = () => fileInput.click();
-        fileInput.onchange = oneTimeUpload;
-        menuEntryDiv.appendChild(fileInput);
-    }
-
-    const iconElement = document.createElement('div');
-    iconElement.innerHTML = iconUpSvg;
-
-    const span = document.createElement('span');
-    span.className = 'entry-label';
-    span.textContent = 'Sync Local';
-
-    button.appendChild(iconElement.firstChild);
-    button.appendChild(span);
-    menuEntryDiv.appendChild(button);
-
-    const settingsEntry = menuContainer.querySelector('.menu-entry.settings');
-    if (settingsEntry) settingsEntry.insertAdjacentElement('afterend', menuEntryDiv);
-}
-
-// --- SYNC LOCAL FUNCTIONALITY ---
-
-// --- SYNC ONLINE FUNCTIONALITY ---
-async function startSyncOnlineProcess() {
-    if (syncOnlineActive) return;
-
-    try {
-        let success = await getFileHandle('readwrite');
-        if (!success) {
-            logError("Failed to get file handle for sync.");
-            return;
-        }
-
-        syncOnlineActive = true;
-
-        { // Enable synchronization
-            let eventData = {status: 'synchronized', value: true};
-            let ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
-            window.document.dispatchEvent(ev);
-        }
-
-        { // Initial code download
-            let eventData = {status: 'getCode'};
-            let ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
-            window.document.dispatchEvent(ev);
-        }
-
-        const button = document.querySelector('.sync-online-entry .menu-entry-inner');
-        if (button) button.classList.toggle('selected', true);
-        log("Sync Online started, your local file will be updated.");
-
-    } catch (error) {
-        if (error.name === 'AbortError') {
-            log("Aborted file picker.");
-        } else {
-            logError("Failed to start sync process:", error);
-        }
-        stopSyncOnlineProcess();
-    }
-}
-
-function stopSyncOnlineProcess() {
-    if (!syncOnlineActive) return;
-
-    // Disable synchronization
-    let eventData = {status: 'synchronized', value: false};
-    let ev = new CustomEvent('ExternalEditorToIDE', {detail: eventData});
-    window.document.dispatchEvent(ev);
-
-    syncOnlineActive = false;
-    maybeClearFileHandle();
-    maybeRemoveTimestamp();
-
-    const button = document.querySelector('.sync-online-entry .menu-entry-inner');
-    if (button) button.classList.toggle('selected', false);
-}
-
-async function writeCodeToLocalFile(code) {
-    if (!syncFileHandle) {
-        logError("No file handle available for writing.");
-        stopSyncOnlineProcess();
-        return;
-    }
-
-    try {
-        const writable = await syncFileHandle.createWritable();
-        await writable.write(code);
-        await writable.close();
-
-        // If the local-to-online sync is also active, update its timestamp
-        // to prevent it from immediately re-uploading this change.
-        if (syncLocalActive) {
-            const file = await syncFileHandle.getFile();
-            syncLocalLastModified = file.lastModified;
-        }
-    } catch (error) {
-        logError("Failed write to local file:", error);
-        stopSyncOnlineProcess();
-    }
-}
-
-async function handleSyncOnlineEvents(event) {
-    if (!syncOnlineActive) return;
-
-    if (event.detail.code && event.detail.code !== currentCode) {
-        const hasPermission = await verifyPermission(syncFileHandle, 'readwrite');
-        if (!hasPermission) {
-            logError("Write permission was not granted.");
-            stopSyncOnlineProcess();
-            return;
-        }
-
-        currentCode = event.detail.code;
-        await writeCodeToLocalFile(event.detail.code);
-        log("Code updated in local file.");
-        updateTimestampDisplay();
-    }
-}
-
-function createSyncOnlineButton() {
-    const menuContainer = document.querySelector('.menu-entries');
-    if (!menuContainer) return;
-
-    const menuEntryDiv = document.createElement('div');
-    menuEntryDiv.className = 'menu-entry sync-online-entry';
-
-    const button = document.createElement('button');
-    button.className = 'menu-entry-inner';
-
-    if (fileSystemAccessApiAvailable()) {
-        window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvents);
-
-        button.onclick = async () => {
-            if (syncOnlineActive) {
-                stopSyncOnlineProcess();
-            } else {
-                await startSyncOnlineProcess();
-            }
+        fileInput.onchange = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => updateEditorCode(e.target.result);
+            reader.readAsText(file);
+            event.target.value = ''; // Reset to allow re-uploading the same file
         };
-    } else {
-        button.disabled = true;
+        const fallbackButton = createMenuButton({
+            id: 'sync-local',
+            text: 'Upload File',
+            icon: ICONS.SYNC_UP,
+            onClick: () => fileInput.click(),
+        });
+        if (fallbackButton) fallbackButton.parentElement.appendChild(fileInput);
     }
 
-    const iconElement = document.createElement('div');
-    iconElement.innerHTML = iconDownSvg;
+    // Pro Layout Button
+    const proLayoutButton = createMenuButton({
+        id: 'pro-layout',
+        text: 'Pro Layout',
+        icon: ICONS.PRO_LAYOUT,
+        onClick: (e) => {
+            toggleProLayout(!state.isProLayoutActive);
+            e.currentTarget.classList.toggle('selected', state.isProLayoutActive);
+        }
+    });
+    if (proLayoutButton) proLayoutButton.classList.toggle('selected', state.isProLayoutActive);
 
-    const span = document.createElement('span');
-    span.className = 'entry-label';
-    span.textContent = 'Sync Online';
+    // Set initial state
+    if (state.isProLayoutActive) toggleProLayout(true);
+    window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvent);
 
-    button.appendChild(iconElement.firstChild);
-    button.appendChild(span);
-    menuEntryDiv.appendChild(button);
-    const settingsEntry = menuContainer.querySelector('.menu-entry.settings');
-    if (settingsEntry) settingsEntry.insertAdjacentElement('afterend', menuEntryDiv);
+    state.isInitialized = true;
+    log("UI Initialized.");
 }
 
-// --- SYNC ONLINE FUNCTIONALITY ---
-
-// --- INITIALIZATION ---
-function initialize() {
-    // If the button we are about to create already exists, do nothing.
-    if (document.querySelector('.pro-layout-entry')) {
-        return;
+function handlePageChanges() {
+    // If the menu exists and we haven't initialized, run the setup.
+    if (document.querySelector('.menu-entries') && !state.isInitialized) {
+        initializeUI();
     }
-
-    createSyncOnlineButton();
-    createSyncLocalButton();
-    createProLayoutToggleButton();
-    if (isProLayoutActive) activateProLayout();
+    // If the menu disappears, reset the state.
+    else if (!document.querySelector('.menu-entries') && state.isInitialized) {
+        log("IDE menu not found. Tearing down features.");
+        if (state.sync.local.active) stopSyncLocal();
+        if (state.sync.online.active) stopSyncOnline();
+        state.isInitialized = false;
+    }
 }
 
-// This function will be called by the observer on every DOM change.
-const handleDOMChanges = () => {
-    // Check if the menu exists on the page right now.
-    const menuExists = document.querySelector('.menu-entries');
-
-    if (menuExists) {
-        // The menu is present, so try to initialize our UI.
-        // The guard clause inside initialize() will prevent it from running if it's already there.
-        initialize();
-    } else {
-        stopSyncLocalProcess();
-        stopSyncOnlineProcess();
-    }
-};
-
-// Create an observer that calls our handler function.
-const observer = new MutationObserver(handleDOMChanges);
-
-// Start observing the entire document for changes.
-observer.observe(document.body, {
-    childList: true, subtree: true
-});
-
+// Observe the DOM for changes to initialize the extension when the IDE loads.
+const pageObserver = new MutationObserver(handlePageChanges);
+pageObserver.observe(document.body, {childList: true, subtree: true});
