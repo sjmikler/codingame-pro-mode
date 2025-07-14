@@ -32,7 +32,7 @@ This is a toggle button. Click it again to restore the default layout.
 
 ## Code Synchronization
 
-This extension offers code synchronization functionality. No external apps are necessary. You can choose to use only a one-way sync or use both for a two-way sync.
+This extension offers code synchronization functionality. No external apps are necessary. You can choose to use a one-way sync or a two-way sync.
 
 ### Browser support
 
@@ -40,9 +40,9 @@ This extension offers code synchronization functionality. No external apps are n
 * **Chrome**: works out of the box
 * **Brave**: works if API is enabled
 
-Synchronization requires File System Access API. Some browsers might require a manual activation of it. To manually enable the API, go to: `chrome://flags/#file-system-access-api`. With the API disabled, the extension will still work, but won't offer the Synchronization functionality.
+Synchronization requires the File System Access API. In some browser, it is not activated by default and needs a manual activation. To manually enable the API, go to: `chrome://flags/#file-system-access-api`. With the API disabled, the extension will still work, but won't offer the Synchronization functionality.
 
-You can read more about File System Access API: https://wicg.github.io/file-system-access.
+You can read more about the File System Access API: https://wicg.github.io/file-system-access.
 
 ## Troubleshooting
 
