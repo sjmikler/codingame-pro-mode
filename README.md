@@ -32,7 +32,7 @@ This is a toggle button. Click it again to restore the default layout.
 
 ## Code Synchronization
 
-This extension offers code synchronization functionality. No external apps are necessary. You can choose to use a one-way sync or a two-way sync.
+This extension offers code synchronization functionality. No external apps are necessary. You can choose to use a one-way sync or a two-way sync. Just click one of the buttons and select a local file that will be synchronized.
 
 ### Browser support
 
