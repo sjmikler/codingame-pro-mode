@@ -28,11 +28,12 @@ This extension offers code synchronization functionality. No external apps are n
 
 * **Chrome**: works out of the box
 * **Edge**: works out of the box
-* **Brave**: works if API is enabled via `chrome://flags`
+* **Brave**: works if API is enabled
 * **Firefox**: won't work
 
-This feature requires File System Access API. Some browsers might an require explicit activation via
-[chrome://flags](chrome://flags/#file-system-access-api)
+This feature requires File System Access API. Some browsers might require a manual activation.
+
+To manually enable the API, go to: `chrome://flags/#file-system-access-api`
 
 > Without File System Access API the extension will still work, but with limited feature set.
 >
