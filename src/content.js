@@ -329,25 +329,28 @@ function createMenuButton({id, text, icon, onClick, disabled = false}) {
 function initializeUI() {
     if (state.isInitialized) return;
 
+    // Sync Online Button (Download)
+    let syncOnlineButton = createMenuButton({
+        id: 'sync-online',
+        text: 'Sync Online',
+        icon: ICONS.SYNC_DOWN,
+        onClick: () => (state.sync.online.active ? stopSyncOnline() : startSyncOnline()),
+        disabled: !FSO_API_AVAILABLE,
+    });
+
+    // Sync Local Button (Upload)
+    let syncLocalButton = createMenuButton({
+        id: 'sync-local',
+        text: 'Sync Local',
+        icon: ICONS.SYNC_UP,
+        onClick: () => (state.sync.local.active ? stopSyncLocal() : startSyncLocal()),
+    });
+
     if (FSO_API_AVAILABLE) {
-        // Sync Online Button (Download)
-        createMenuButton({
-            id: 'sync-online',
-            text: 'Sync Online',
-            icon: ICONS.SYNC_DOWN,
-            onClick: () => (state.sync.online.active ? stopSyncOnline() : startSyncOnline()),
-            disabled: !FSO_API_AVAILABLE,
-        });
-
-        // Sync Local Button (Upload)
-        createMenuButton({
-            id: 'sync-local',
-            text: 'Sync Local',
-            icon: ICONS.SYNC_UP,
-            onClick: () => (state.sync.local.active ? stopSyncLocal() : startSyncLocal()),
-        });
-
         window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvent);
+    } else {
+        syncLocalButton.disabled = true;
+        syncOnlineButton.disabled = true;
     }
 
     // Pro Layout Button

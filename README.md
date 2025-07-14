@@ -46,6 +46,6 @@ You can read more about File System Access API: https://wicg.github.io/file-syst
 
 ## Troubleshooting
 
-> Sync Local / Online buttons are not showing up
+> Sync Local / Online buttons are greyed out
 
 This means that the extension is not able to access the local file system. Make sure you have enabled File System Access API in your browser settings.
