@@ -317,14 +317,16 @@ function createMenuButton({id, text, icon, onClick, disabled = false}) {
     button.onclick = onClick;
     button.disabled = disabled;
 
-    const iconElement = document.createElement('div');
-    iconElement.innerHTML = icon;
+    // Safely parse the SVG string into a DOM element
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(icon, "image/svg+xml");
+    const svgElement = svgDoc.documentElement;
 
     const span = document.createElement('span');
     span.className = 'entry-label';
     span.textContent = text;
 
-    button.appendChild(iconElement.firstChild);
+    button.appendChild(svgElement);
     button.appendChild(span);
     menuEntryDiv.appendChild(button);
 
