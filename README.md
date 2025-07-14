@@ -1,7 +1,7 @@
 # CodinGame Pro Layout
 
-[Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
-[Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
+* [Download for Chrome](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
+* [Download for Firefox](https://addons.mozilla.org/en-US/firefox/addon/codingame-pro-layout/)
 
 Reclaim your precious screen real estate in CodinGame IDE.
 
