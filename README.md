@@ -38,4 +38,4 @@ Synchronization requires the File System Access API. If this API is disabled or 
 
 > Sync Local / Online buttons are greyed out
 
-This means the extension cannot access the local file system. Please check the compatibility table above. If you are using a Chromium-based browser like Brave, you may need to manually enable the API by navigating to chrome://flags/#file-system-access-api and enabling the flag.
+This means the extension cannot access the local file system. If you are using a Chromium-based browser like Brave, you may need to manually enable the API by navigating to `chrome://flags/#file-system-access-api` and enabling the flag.
