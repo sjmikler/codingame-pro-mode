@@ -1,4 +1,4 @@
-# CodinGame Pro Layout
+# CodinGame Pro Mode
 
 > [Install from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
 >
