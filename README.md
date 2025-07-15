@@ -1,6 +1,6 @@
 # CodinGame Pro Layout
 
-[Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
+> [Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
 
 > Firefox is not currently supported.
 
