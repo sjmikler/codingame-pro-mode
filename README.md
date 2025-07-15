@@ -41,3 +41,8 @@ Synchronization requires the File System Access API. If this API is disabled or 
 > Sync Local / Online buttons are greyed out
 
 This means the extension cannot access the local file system. If you are using a Chromium-based browser like Brave, you may need to manually enable the API by navigating to `chrome://flags/#file-system-access-api` and enabling the flag.
+
+
+> Add support for Firefox
+
+Firefox does not currently support the necessary subset of File System Access API. Technically, you can still install CodinGame Pro Layout and use it without the synchronization functionality. To do that, download the extension source code to your computer and install it locally in Firefox: https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox.
