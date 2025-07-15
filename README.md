@@ -36,6 +36,12 @@ This extension offers code synchronization functionality. No external apps are n
 
 Synchronization requires the File System Access API. If this API is disabled or not supported, the sync buttons will be grayed out, but the Pro Layout feature will still work perfectly. To manually enable the API, go to: `chrome://flags/#file-system-access-api`.
 
+## Popup menu
+
+You can enable or disable features from the Popup menu. Refresh CodinGame after modifying.
+
+![popup](images/popup.png)
+
 ## Troubleshooting
 
 > Sync Local / Online buttons are greyed out

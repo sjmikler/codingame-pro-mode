@@ -1,7 +1,7 @@
 'use strict';
 
 // --- LOGGING ---
-const libName = 'CodinGame Pro Layout';
+const libName = 'CodinGame Pro Mode';
 const styles = 'background: #5c3cd4; color: #fff; padding: 2px 6px; border-radius: 3px;';
 const logError = (...args) => console.error(`%c${libName}`, styles, ...args);
 const log = (...args) => console.log(`%c${libName}`, styles, ...args);
@@ -16,6 +16,7 @@ const ICONS = {
     PRO_LAYOUT: `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="pro-icon"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>`,
     SYNC_UP: `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" opacity="0"/><path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/><path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z" transform="rotate(180, 12, 16.5)"/></svg>`,
     SYNC_DOWN: `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" opacity="0"/><path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/><path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z"/></svg>`,
+    UPLOAD_CODE: `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="pro-icon" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>`,
 };
 // --- END CONSTANTS ---
 
@@ -170,6 +171,34 @@ function toggleProLayout(enable) {
 
 // --- SYNC FUNCTIONALITY ---
 
+// -- UPLOAD CODE (Upload code just once) --
+function initializeUploadCode() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.style.display = 'none';
+
+    fileInput.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+            logError("No file selected for upload.");
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            updateEditorCode(text);
+            log("Code uploaded from local file.");
+        } catch (error) {
+            logError("Failed to read file:", error);
+        }
+    }
+
+    const menuContainer = document.querySelector('.menu-entries');
+    menuContainer.appendChild(fileInput);
+    return fileInput;
+}
+
+
 // -- SYNC LOCAL (Upload from File to Editor) --
 function updateEditorCode(code) {
     if (!code) return;
@@ -268,7 +297,7 @@ async function startSyncOnline() {
     state.sync.online.active = true;
     document.querySelector('.sync-online-button')?.classList.add('selected');
 
-    // Enable CodinGame's internal sync and request initial code
+// Enable CodinGame's internal sync and request initial code
     dispatchCustomEvent('ExternalEditorToIDE', {status: 'synchronized', value: true});
     dispatchCustomEvent('ExternalEditorToIDE', {status: 'getCode'});
 
@@ -326,51 +355,68 @@ function createMenuButton({id, text, icon, onClick, disabled = false}) {
 }
 
 
-function initializeUI() {
+function initializeUI(settings) {
     if (state.isInitialized) return;
 
     // Sync Online Button (Download)
-    let syncOnlineButton = createMenuButton({
-        id: 'sync-online',
-        text: 'Sync Online',
-        icon: ICONS.SYNC_DOWN,
-        onClick: () => (state.sync.online.active ? stopSyncOnline() : startSyncOnline()),
-        disabled: !FSO_API_AVAILABLE,
-    });
+    if (settings.syncOnline) {
+        createMenuButton({
+            id: 'sync-online',
+            text: 'Sync Online',
+            icon: ICONS.SYNC_DOWN,
+            onClick: () => (state.sync.online.active ? stopSyncOnline() : startSyncOnline()),
+            disabled: !FSO_API_AVAILABLE,
+        });
+
+        if (FSO_API_AVAILABLE) {
+            window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvent);
+        }
+    }
 
     // Sync Local Button (Upload)
-    let syncLocalButton = createMenuButton({
-        id: 'sync-local',
-        text: 'Sync Local',
-        icon: ICONS.SYNC_UP,
-        onClick: () => (state.sync.local.active ? stopSyncLocal() : startSyncLocal()),
-    });
+    if (settings.syncLocal) {
+        createMenuButton({
+            id: 'sync-local',
+            text: 'Sync Local',
+            icon: ICONS.SYNC_UP,
+            onClick: () => (state.sync.local.active ? stopSyncLocal() : startSyncLocal()),
+            disabled: !FSO_API_AVAILABLE,
+        });
+    }
 
-    if (FSO_API_AVAILABLE) {
-        window.document.addEventListener('IDEToExternalEditor', handleSyncOnlineEvent);
-    } else {
-        syncLocalButton.disabled = true;
-        syncOnlineButton.disabled = true;
+
+    if (settings.uploadCode) {
+        // Initialize the upload code functionality
+        const fileInput = initializeUploadCode();
+        createMenuButton({
+            id: 'upload-code', text: 'Upload Code', icon: ICONS.UPLOAD_CODE, onClick: () => fileInput.click(),
+        });
     }
 
     // Pro Layout Button
-    const proLayoutButton = createMenuButton({
-        id: 'pro-layout', text: 'Pro Layout', icon: ICONS.PRO_LAYOUT, onClick: (e) => {
-            toggleProLayout(!state.isProLayoutActive);
-            e.currentTarget.classList.toggle('selected', state.isProLayoutActive);
-        }
-    });
-    if (proLayoutButton) proLayoutButton.classList.toggle('selected', state.isProLayoutActive);
-    if (state.isProLayoutActive) toggleProLayout(true);
+    if (settings.proLayout) {
+        const proLayoutButton = createMenuButton({
+            id: 'pro-layout', text: 'Pro Layout', icon: ICONS.PRO_LAYOUT, onClick: (e) => {
+                toggleProLayout(!state.isProLayoutActive);
+                e.currentTarget.classList.toggle('selected', state.isProLayoutActive);
+            }
+        });
+        if (proLayoutButton) proLayoutButton.classList.toggle('selected', state.isProLayoutActive);
+        if (state.isProLayoutActive) toggleProLayout(true);
+    }
 
     state.isInitialized = true;
     log("UI Initialized.");
 }
 
+const DEFAULT_SETTINGS = {
+    proLayout: true, uploadCode: false, syncLocal: true, syncOnline: true,
+};
+
 function handlePageChanges() {
     // If the menu exists and we haven't initialized, run the setup.
     if (document.querySelector('.menu-entries') && !state.isInitialized) {
-        initializeUI();
+        chrome.storage.sync.get(DEFAULT_SETTINGS, initializeUI);
     }
     // If the menu disappears, reset the state.
     else if (!document.querySelector('.menu-entries') && state.isInitialized) {
