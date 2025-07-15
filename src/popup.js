@@ -1,10 +1,9 @@
 // popup.js
 
+const FSO_API_AVAILABLE = 'showOpenFilePicker' in self && typeof window.showOpenFilePicker === 'function';
+
 const DEFAULT_SETTINGS = {
-    proLayout: true,
-    uploadCode: false,
-    syncLocal: true,
-    syncOnline: true,
+    proLayout: true, uploadCode: false, syncLocal: true, syncOnline: true,
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,3 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+if (!FSO_API_AVAILABLE) {
+    const container = document.getElementById('container');
+    if (container) {
+        const message = document.createElement('a');
+        message.href = 'https://github.com/sjmikler/codingame-pro-mode?tab=readme-ov-file#troubleshooting';
+        message.textContent = 'FileSystemAccessAPI disabled';
+        message.style.color = 'red';
+        container.appendChild(message);
+    }
+}
