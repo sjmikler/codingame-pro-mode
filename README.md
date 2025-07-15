@@ -45,4 +45,4 @@ This means the extension cannot access the local file system. If you are using a
 
 > Add support for Firefox
 
-Firefox does not currently support the necessary subset of File System Access API. Technically, you can still install CodinGame Pro Layout and use it without the synchronization functionality. To do that, download the extension source code to your computer and install it locally in Firefox: https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox.
+Firefox does not currently support the necessary subset of File System Access API. Technically, you can still install CodinGame Pro Layout and use it without the synchronization functionality. To do that, download the extension source code to your computer and [install it locally in Firefox](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox).
