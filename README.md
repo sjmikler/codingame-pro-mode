@@ -2,6 +2,8 @@
 
 [Download from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
 
+> Firefox is not currently supported.
+
 Do you prefer coding in your own local editor? This extension optimizes the CodinGame UI for you. It introduces **Pro Layout**, which hides the online editor to reclaim screen space and provides an expanded console for a better view of your test results.
 
 It also features seamless two-way code synchronization:
