@@ -34,7 +34,7 @@ This extension offers code synchronization functionality. No external apps are n
 * **Chrome**: works out of the box
 * **Brave**: works if API is enabled
 
-Synchronization requires the File System Access API. If this API is disabled or not supported, the sync buttons will be grayed out, but the Pro Layout feature will still work perfectly. To manually enable the API, go to: `chrome://flags/#file-system-access-api`.
+Synchronization requires the File System Access API. If this API is disabled or not supported, the sync buttons will be grayed out, but the 'Pro Layout' feature will still work perfectly. To manually enable the API, go to: `chrome://flags/#file-system-access-api`.
 
 ## Popup menu
 
@@ -51,4 +51,4 @@ This means the extension cannot access the local file system. If you are using a
 
 > Add support for Firefox
 
-Firefox does not currently support the necessary subset of File System Access API. Technically, you can still install CodinGame Pro Layout and use it without the synchronization functionality. To do that, download the extension source code to your computer and [install it locally in Firefox](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox).
+Firefox does not currently support the necessary subset of File System Access API. Technically, you can still install CodinGame Pro Mode and use it without the synchronization functionality. To do that, download the extension source code to your computer and [install it locally in Firefox](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox).
