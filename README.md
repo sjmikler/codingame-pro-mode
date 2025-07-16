@@ -57,6 +57,6 @@ This usually means the File System Access API is not available in your browser.
 > How can I use this on Firefox?
 
 Firefox does not currently support the necessary subset of File System Access API.
-While the code synchronization will not work, you can still install the extension manually to use other features.
+While the code synchronization won't work, you can still install the extension manually to use other features.
 * Download the source code of this extension
 * Follow the official guide for [temporary installation in Firefox](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox)
