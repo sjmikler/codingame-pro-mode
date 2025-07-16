@@ -49,7 +49,7 @@ You can enable or disable features from the Popup menu. Refresh CodinGame websit
 
 > Synchronization feature does not work
 
-This means the extension cannot access the local file system because File System Access API is not available.
+This usually means the extension cannot access the local file system because File System Access API is not available.
 
 * If you are using a Chromium-based browser like Brave, you may need to manually enable the API by navigating to `chrome://flags/#file-system-access-api` and enabling the flag.
 * If you are using Firefox, most likely you won't be able to use the synchronization feature.
