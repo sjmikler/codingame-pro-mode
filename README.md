@@ -41,16 +41,18 @@ Synchronization requires the File System Access API. If this API is disabled or 
 
 ## Popup menu
 
-You can enable or disable features from the Popup menu. Refresh CodinGame after modifying.
+You can enable or disable features from the Popup menu. Refresh CodinGame website after making changes.
 
 ![popup](images/popup.png)
 
 ## Troubleshooting
 
-> Sync Local / Online buttons are greyed out
+> Synchronization feature does not work
 
-This means the extension cannot access the local file system. If you are using a Chromium-based browser like Brave, you may need to manually enable the API by navigating to `chrome://flags/#file-system-access-api` and enabling the flag.
+This means the extension cannot access the local file system because File System Access API is not available.
 
+* If you are using a Chromium-based browser like Brave, you may need to manually enable the API by navigating to `chrome://flags/#file-system-access-api` and enabling the flag.
+* If you are using Firefox, most likely you won't be able to use the synchronization feature. You can disable it entirely using the Popup menu. Consider enabling 'Upload Code' instead, for a simpler, one-time code synchronization.
 
 > Add support for Firefox
 

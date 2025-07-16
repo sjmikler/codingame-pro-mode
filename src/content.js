@@ -234,6 +234,11 @@ async function observeFileForChangesLoop() {
 
 async function startSyncLocal() {
     if (state.sync.local.active) return;
+    if (!FSO_API_AVAILABLE) {
+        alert("File System Access API not enabled in this browser.\n\nTry enabling:\nchrome://flags/#file-system-access-api\n\nRead more:\nhttps://github.com/sjmikler/codingame-pro-mode");
+        return;
+    }
+
     if (!await getFileHandle('read')) return;
 
     // Set active state before doing anything else
@@ -292,6 +297,11 @@ async function handleSyncOnlineEvent(event) {
 
 async function startSyncOnline() {
     if (state.sync.online.active) return;
+    if (!FSO_API_AVAILABLE) {
+        alert("File System Access API not enabled in this browser.\n\nTry enabling:\nchrome://flags/#file-system-access-api\n\nRead more:\nhttps://github.com/sjmikler/codingame-pro-mode");
+        return;
+    }
+
     if (!await getFileHandle('readwrite')) return;
 
     state.sync.online.active = true;
@@ -365,7 +375,6 @@ function initializeUI(settings) {
             text: 'Sync Online',
             icon: ICONS.SYNC_DOWN,
             onClick: () => (state.sync.online.active ? stopSyncOnline() : startSyncOnline()),
-            disabled: !FSO_API_AVAILABLE,
         });
 
         if (FSO_API_AVAILABLE) {
@@ -380,10 +389,8 @@ function initializeUI(settings) {
             text: 'Sync Local',
             icon: ICONS.SYNC_UP,
             onClick: () => (state.sync.local.active ? stopSyncLocal() : startSyncLocal()),
-            disabled: !FSO_API_AVAILABLE,
         });
     }
-
 
     if (settings.uploadCode) {
         // Initialize the upload code functionality
