@@ -3,21 +3,19 @@
 # CodinGame Pro Mode
 
 > [Install from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
->
-> Firefox is not currently supported.
 
+Do you prefer coding in your own local editor? This extension optimizes the CodinGame UI for you. It hides the unused online editor to reclaim screen space, provides an expanded console, and offers seamless code synchronization with your local files.
 
-Do you prefer coding in your own local editor? This extension optimizes the CodinGame UI for you. It introduces **Pro Layout**, which hides the online editor to reclaim screen space and provides an expanded console for a better view of your logs and messages.
-
-It also features a seamless two-way code synchronization:
-
-- **Sync Local**: Automatically reflects changes from your local file in the online editor.
-- **Sync Online**: Instantly saves code from the online editor back to your local file.
+## Key Features
+* **Pro Layout**: A minimalist layout that hides the online editor and maximizes space for the console
+* **Two-Way Code Sync**: Automatically keep a local file in sync with the CodinGame editor
+  * **Sync Local**: Changes to your local file are instantly sent to the online editor
+  * **Sync Online**: Changes in the online editor are instantly saved to your local file
+* **Configurable**: Enable or disable features easily from the extension's popup menu
 
 ## Pro Layout
 
-Clicking the **Pro Layout** button has the following effects:
-
+Click the **Pro Layout** button to optimize the UI. This action:
 * Hides the code editor
 * Moves the 'Console output' to the right
 * Moves 'Players' and 'Actions' to the left, under the game visualization
@@ -25,23 +23,25 @@ Clicking the **Pro Layout** button has the following effects:
 This is a toggle button. Click it again to restore the default layout.
 
 ![screenshot](images/screenshot.png)
-*Screenshot showing how 'Pro Layout' looks in practice.*
+*Screenshot showing how **Pro Layout** looks in practice.*
 
 ## Code Synchronization
 
-This extension offers code synchronization functionality. No external apps are necessary. You can choose to use a one-way sync or a two-way sync. Just click one of the buttons and select a local file that will be synchronized.
+This extension offers code synchronization functionality, with no external apps needed. You can choose to use a one-way sync or a two-way sync. Just click one of the buttons and select a local file that will be synchronized.
 
 ### Browser support
 
 * **Edge**: works out of the box
 * **Chrome**: works out of the box
 * **Brave**: works if API is enabled
+* **Firefox**: currently not supported
 
-Synchronization requires the File System Access API. If this API is disabled or not supported, the sync buttons will be grayed out, but the 'Pro Layout' feature will still work perfectly. To manually enable the API, go to: `chrome://flags/#file-system-access-api`.
+Synchronization requires the **File System Access API**. If this API is disabled or not supported, the synchronization cannot be enabled. Other features like **Pro Layout** will still work perfectly. To manually enable the API, go to: `chrome://flags/#file-system-access-api`. As an alterative to synchronization, there's also a one-time **Upload Code** feature available. You can enable it from the popup menu.
 
 ## Popup menu
 
-You can enable or disable features from the Popup menu. Refresh CodinGame website after making changes.
+You can enable or disable individual features from the extension's popup menu.
+Refresh the CodinGame website after making changes for them to take effect.
 
 ![popup](images/popup.png)
 
@@ -49,13 +49,14 @@ You can enable or disable features from the Popup menu. Refresh CodinGame websit
 
 > Synchronization feature does not work
 
-This usually means the extension cannot access the local file system because File System Access API is not available.
+This usually means the File System Access API is not available in your browser.
 
-* If you are using a Chromium-based browser like Brave, you may need to manually enable the API by navigating to `chrome://flags/#file-system-access-api` and enabling the flag.
-* If you are using Firefox, most likely you won't be able to use the synchronization feature.
+* If you are using a compatible browser like Brave, try enabling the API manually at `chrome://flags/#file-system-access-api`
+* If you cannot resolve the issue, you can disable the sync features entirely from the extension's popup menu
 
-If you cannot fix this problem, you can disable the feature entirely using the Popup menu. Consider enabling 'Upload Code' instead for a simpler, one-time code synchronization.
+> How can I use this on Firefox?
 
-> Add support for Firefox
-
-Firefox does not currently support the necessary subset of File System Access API. Technically, you can still install CodinGame Pro Mode and use it without the synchronization functionality. To do that, download the extension source code to your computer and [install it locally in Firefox](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox).
+Firefox does not currently support the necessary subset of File System Access API.
+While the code synchronization will not work, you can still install the extension manually to use other features.
+* Download the source code of this extension
+* Follow the official guide for [temporary installation in Firefox](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox)
