@@ -8,7 +8,7 @@ Do you prefer coding in your own local editor? This extension optimizes the Codi
 
 ## Key Features
 * **Pro Layout**: A minimalist layout that hides the online editor and maximizes space for the console
-* **Two-Way Code Sync**: Automatically keep a local file in sync with the CodinGame editor
+* **Two-Way Code Sync**:
   * **Sync Local**: Changes to your local file are instantly sent to the online editor
   * **Sync Online**: Changes in the online editor are instantly saved to your local file
 * **Configurable**: Enable or disable features easily from the extension's popup menu
