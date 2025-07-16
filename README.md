@@ -9,7 +9,7 @@
 
 Do you prefer coding in your own local editor? This extension optimizes the CodinGame UI for you. It introduces **Pro Layout**, which hides the online editor to reclaim screen space and provides an expanded console for a better view of your logs and messages.
 
-It also features seamless two-way code synchronization:
+It also features a seamless two-way code synchronization:
 
 - **Sync Local**: Automatically reflects changes from your local file in the online editor.
 - **Sync Online**: Instantly saves code from the online editor back to your local file.
