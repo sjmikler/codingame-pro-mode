@@ -1,38 +1,39 @@
 {
-  "manifest_version": 3,
-  "name": "CodinGame Pro Mode",
-  "version": "3.2",
-  "description": "Optimize the CodinGame UI and add seamless code synchronization.",
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
-  "permissions": [
-    "storage"
-  ],
-  "action": {
-    "default_popup": "src/popup.html",
-    "default_icon": {
-      "48": "icons/icon48.png"
+    "manifest_version": 3,
+    "name": "CodinGame Pro Mode",
+    "version": "3.2",
+    "description": "Optimize the CodinGame UI and add seamless code synchronization.",
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "permissions": [
+        "storage"
+    ],
+    "action": {
+        "default_popup": "src/popup.html",
+        "default_icon": {
+            "48": "icons/icon48.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.codingame.com/*"
+            ],
+            "css": [
+                "src/styles.css"
+            ],
+            "js": [
+                "src/content.js"
+            ],
+            "type": "module"
+        }
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{0b1eb558-4aa2-4509-91ef-9aab8cabe4ed}"
+        }
     }
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://www.codingame.com/*"
-      ],
-      "css": [
-        "src/styles.css"
-      ],
-      "js": [
-        "src/content.js"
-      ]
-    }
-  ],
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "{0b1eb558-4aa2-4509-91ef-9aab8cabe4ed}"
-    }
-  }
 }

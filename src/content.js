@@ -1,5 +1,14 @@
 'use strict';
 
+const DEFAULT_SETTINGS = {
+    proLayout: true,
+    uploadCode: false,
+    syncLocal: true,
+    syncOnline: false,
+    consoleSpace: false,
+    zenMode: false,
+};
+
 // --- LOGGING ---
 const libName = 'CodinGame Pro Mode';
 const styles = 'background: #5c3cd4; color: #fff; padding: 2px 6px; border-radius: 3px;';
@@ -17,6 +26,7 @@ const ICONS = {
     SYNC_UP: `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" opacity="0"/><path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/><path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z" transform="rotate(180, 12, 16.5)"/></svg>`,
     SYNC_DOWN: `<svg fill="currentColor" viewBox="0 0 24 24" class="pro-icon" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" opacity="0"/><path d="M17.67 7A6 6 0 0 0 6.33 7a5 5 0 0 0-3.08 8.27A1 1 0 1 0 4.75 14 3 3 0 0 1 7 9h.1a1 1 0 0 0 1-.8 4 4 0 0 1 7.84 0 1 1 0 0 0 1 .8H17a3 3 0 0 1 2.25 5 1 1 0 0 0 .09 1.42 1 1 0 0 0 .66.25 1 1 0 0 0 .75-.34A5 5 0 0 0 17.67 7z"/><path d="M14.31 16.38L13 17.64V12a1 1 0 0 0-2 0v5.59l-1.29-1.3a1 1 0 0 0-1.42 1.42l3 3A1 1 0 0 0 12 21a1 1 0 0 0 .69-.28l3-2.9a1 1 0 1 0-1.38-1.44z"/></svg>`,
     UPLOAD_CODE: `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="pro-icon" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>`,
+    ZEN_MODE: `<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="pro-icon"> <path d="M9.167 4.5a1.167 1.167 0 1 1-2.334 0 1.167 1.167 0 0 1 2.334 0"/> <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0M1 8a7 7 0 0 1 7-7 3.5 3.5 0 1 1 0 7 3.5 3.5 0 1 0 0 7 7 7 0 0 1-7-7m7 4.667a1.167 1.167 0 1 1 0-2.334 1.167 1.167 0 0 1 0 2.334"/> </svg>`
 };
 // --- END CONSTANTS ---
 
@@ -92,7 +102,7 @@ function dispatchCustomEvent(eventName, detail) {
 function updateTimestampDisplay() {
     let codeTimestamp = document.querySelector(".code-timestamp");
     if (!codeTimestamp) {
-        const codeManagement = document.querySelector(".ide-header");
+        const codeManagement = document.querySelector(".bloc-header");
         if (!codeManagement) return; // Exit if the target element isn't there
         codeTimestamp = document.createElement('div');
         codeTimestamp.className = 'code-timestamp';
@@ -364,9 +374,120 @@ function createMenuButton({id, text, icon, onClick, disabled = false}) {
     return button;
 }
 
+function getVirtualSpaceHeight() {
+    const cgIdeConsole = document.querySelector('.cg-ide-console');
+    if (!cgIdeConsole || cgIdeConsole.classList.contains('playing')) return 0;
+
+    const parent = document.querySelector('.cg-ide-console-frame-container');
+    if (!parent) return 0;
+
+    const keyframes = parent.getElementsByClassName('keyframe');
+    if (keyframes.length <= 1) return 0;
+    const last_frame = keyframes[keyframes.length - 1];
+
+    const content = document.querySelector(".cg-ide-console-content")
+    if (!content) return 0;
+
+    return content.offsetHeight - last_frame.offsetHeight;
+}
+
+function maybeAddConsoleSpace(settings) {
+    if (!settings.consoleSpace) return;
+    let consoleSpace = document.querySelector('.console-space');
+
+    if (!consoleSpace) {
+        const parent = document.querySelector('.cg-ide-console-frame-container');
+        if (!parent) return;
+
+        consoleSpace = document.createElement('div');
+        consoleSpace.className = 'console-space';
+        parent.appendChild(consoleSpace);
+    }
+
+    const height_str = `${getVirtualSpaceHeight()}px`;
+    if (consoleSpace.style.height !== height_str) {
+        log("Setting virtual space heigth to", height_str);
+        consoleSpace.style.height = height_str;
+    }
+}
+
+function initializeZen() {
+    let header = document.querySelector('.ide-header');
+    if (header) {
+        header.hidden = true;
+
+        const content = document.querySelector('.ide-content');
+        if (content) {
+            content.style.top = '10px';
+            content.style.height = 'calc(100% - 10px)';
+        }
+    }
+
+    let statement = document.querySelector('.cg-ide-statement');
+    if (statement) statement.hidden = true;
+
+    const zenBar = document.createElement('div');
+    const colorReferece = document.querySelector('.main-inner')
+    zenBar.style.position = 'absolute';
+    zenBar.style.top = '0';
+    zenBar.style.left = '0';
+    zenBar.style.width = '100%';
+    zenBar.style.height = '10px';
+    zenBar.style.backgroundColor = colorReferece ? getComputedStyle(colorReferece).backgroundColor : 'black';
+    zenBar.style.zIndex = '999998'; // Much higher z-index
+    zenBar.style.pointerEvents = 'none'; // Allow clicking through
+    document.body.appendChild(zenBar);
+
+    let menu = document.querySelector('.menu');
+    if (menu) menu.hidden = true;
+
+    // if (menu) {
+    // also add a left bar to enable the menu when hovering
+    // const leftBar = document.createElement('div');
+    // leftBar.style.position = 'absolute';
+    // leftBar.style.top = '0';
+    // leftBar.style.left = '0';
+    // leftBar.style.width = '10px';
+    // leftBar.style.height = '100%';
+    // leftBar.style.backgroundColor = 'transparent';
+    // leftBar.style.zIndex = '9999999'; // Much higher z-index
+    // leftBar.style.pointerEvents = 'auto'; // Allow clicking
+    // leftBar.style.transition = 'background-color 0.3s';
+    // leftBar.style.transitionDelay = '0.3s'; // Delay the transition for a smoother effect
+
+
+    // document.body.appendChild(leftBar);
+    // leftBar.onclick = () => {
+    //     menu.hidden = !menu.hidden;
+    //     log("Toggled menu for Zen Mode.");
+    // }
+    // leftBar.onmouseenter = () => {
+    //     leftBar.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    // }
+    // leftBar.onmouseleave = () => {
+    //     leftBar.style.backgroundColor = 'transparent';
+    // }
+    // document.addEventListener('mouseleave', () => {
+    //     leftBar.style.backgroundColor = 'transparent';
+    // })
+    // }
+
+    log("Zen Mode enabled.");
+}
+
 
 function initializeUI(settings) {
     if (state.isInitialized) return;
+
+    // Zen Mode Button
+    if (settings.zenMode) {
+        createMenuButton({
+            id: 'zen-mode', text: 'Zen Mode', icon: ICONS.ZEN_MODE, onClick: (e) => {
+                e.currentTarget.classList.toggle('selected', true);
+                initializeZen();
+            }
+        });
+    }
 
     // Sync Online Button (Download)
     if (settings.syncOnline) {
@@ -416,14 +537,15 @@ function initializeUI(settings) {
     log("UI Initialized.");
 }
 
-const DEFAULT_SETTINGS = {
-    proLayout: true, uploadCode: false, syncLocal: true, syncOnline: true,
-};
-
 function handlePageChanges() {
     // If the menu exists and we haven't initialized, run the setup.
-    if (document.querySelector('.menu-entries') && !state.isInitialized) {
-        chrome.storage.sync.get(DEFAULT_SETTINGS, initializeUI);
+    if (document.querySelector('.menu-entries')) {
+        if (!state.isInitialized) {
+            chrome.storage.sync.get(DEFAULT_SETTINGS, initializeUI);
+        } else {
+            chrome.storage.sync.get(DEFAULT_SETTINGS, maybeAddConsoleSpace);
+        }
+
     }
     // If the menu disappears, reset the state.
     else if (!document.querySelector('.menu-entries') && state.isInitialized) {
