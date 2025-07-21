@@ -4,7 +4,8 @@
 
 > [Install from Chrome Web Store](https://chromewebstore.google.com/detail/fleeplnobejocpmlphmbhlnhnimoglpa)
 
-Do you prefer coding in your own local editor? This extension optimizes the CodinGame UI for you. It hides the unused online editor to reclaim screen space, provides an expanded console, and offers seamless code synchronization with your local files.
+Do you prefer coding in your own local editor? This extension optimizes the CodinGame UI for you. It hides the unused online editor to reclaim screen space, provides an expanded console, offers seamless code synchronization with your local files and more!
+
 
 ## Key Features
 * **Pro Layout**: A minimalist layout that hides the online editor and maximizes space for the console
