@@ -7,10 +7,10 @@ const DEFAULT_SETTINGS = {
 const SETTINGS_DESCRIPTION = {
     proLayout: "Add 'Pro Layout' button to the menu. Allows you to switch between the optimized and default UI.",
     uploadCode: "Add 'Upload Code' button to the menu. Pick a file for a one-time upload of your local code.",
-    syncLocal: "Add 'Sync Local' button to the menu. Pick a local file to synchronize it to the online editor.",
-    syncOnline: "Add 'Sync Online' button to the menu. Pick a local file that will be overriden by the online editor.",
-    consoleSpace: "Adds virtual space at the bottom of the console. It makes for a experience when browsing Console output.",
-    zenMode: "Add 'Zen Mode' button to the menu. It hides the header, description and menu. Refresh CG website to restore them.",
+    syncLocal: "Add 'Sync Local' button to the menu. Pick a local file to upload and keep synchronized with the online editor.",
+    syncOnline: "Add 'Sync Online' button to the menu. Pick a local file that will be overwritten by the online editor content.",
+    consoleSpace: "Adds virtual space at the bottom of the console to have better experience when browsing console output.",
+    zenMode: "Add 'Zen Mode' button to the menu. It hides the header, description and menu. Refresh the page to restore them.",
 }
 
 const FSO_API_AVAILABLE = 'showOpenFilePicker' in self && typeof window.showOpenFilePicker === 'function';
@@ -49,14 +49,27 @@ function createSwitch(id, label, isChecked = false) {
     settingRow.appendChild(labelElement);
     settingRow.appendChild(switchLabel);
 
-    const outer_div = document.createElement('div');
+    const outerDiv = document.createElement('div');
     const description = document.createElement('p');
+
     description.className = 'description';
     description.textContent = SETTINGS_DESCRIPTION[id] || '';
-    outer_div.appendChild(settingRow);
-    outer_div.appendChild(description);
+    outerDiv.appendChild(settingRow);
+    outerDiv.appendChild(description);
 
-    return outer_div;
+    description.hidden = true;
+    outerDiv.onmouseenter = () => {
+        description.hidden = false;
+        outerDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Change background color on mouse enter
+    }
+    outerDiv.onmouseleave = () => {
+        description.hidden = true;
+        outerDiv.style.backgroundColor = ''; // Reset background color on mouse leave
+    }
+    outerDiv.style.padding = '5px';
+    outerDiv.style.borderRadius = '5px';
+
+    return outerDiv;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
